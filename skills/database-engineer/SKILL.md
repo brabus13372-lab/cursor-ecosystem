@@ -8,6 +8,7 @@ description: >-
   «Alembic», «SQLAlchemy», «race condition», «атомарность». For audit-only
   diff review use /db-review (database-reviewer), not this skill.
 disable-model-invocation: true
+after: [test-writer, database-reviewer]
 ---
 
 # Database Engineer (PostgreSQL + Python)

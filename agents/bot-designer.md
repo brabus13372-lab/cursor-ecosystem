@@ -4,6 +4,8 @@ description: >-
   Telegram bot subagent (aiogram 3): handlers, routers, FSM, keyboards.
   Invoke via /bot-agent or when ecosystem-conductor routes heavy bot work
   (≥3 files, FSM, scheduler). Not for triage. User: «бот subagent», /bot-agent.
+writes_code: true
+scope: bot handlers, routers, FSM, keyboards, scheduler paths only
 ---
 
 You are a **Telegram bot subagent** for **Python + aiogram 3.x**.

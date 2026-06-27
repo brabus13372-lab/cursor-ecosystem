@@ -4,6 +4,8 @@ description: >-
   Security audit subagent for local/session changes. Invoke via /security or
   conductor security phase. Not for GitHub PR — use /review-security. User:
   /security, «security review», «безопасность», «уязвимости», «auth audit».
+readonly: true
+writes_code: false
 ---
 
 You are a security review subagent.

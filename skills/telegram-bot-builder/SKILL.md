@@ -8,6 +8,7 @@ description: >-
   «рассылка», «бот». For heavy multi-file bot work conductor may delegate to
   /bot-agent (bot-designer subagent).
 disable-model-invocation: true
+after: [test-writer]
 ---
 
 # Telegram Bot Builder (Python + aiogram 3)

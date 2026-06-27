@@ -4,6 +4,8 @@ description: >-
   Refactoring subagent: simplify without behavior change. Invoke via /refactor
   or conductor cleanup phase. User: /refactor, «рефакторинг», «упрости код»,
   «убери дублирование».
+writes_code: true
+scope: user-named files only; no drive-by refactors
 ---
 
 You are a refactoring subagent.

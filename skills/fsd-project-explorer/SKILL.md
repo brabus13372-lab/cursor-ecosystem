@@ -6,6 +6,7 @@ description: >-
   boundaries, or user mentions: /fsd-map, «FSD», «Feature-Sliced», «слои»,
   «куда положить», «shared/features», «архитектура фронта», «slice».
 disable-model-invocation: true
+after: []
 ---
 
 # FSD Project Explorer

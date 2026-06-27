@@ -6,6 +6,7 @@ description: >-
   mentions: /ideas, «идеи для проекта», «что можно сделать», «side project»,
   «стартап», «MVP», «придумай проект», «чем заняться».
 disable-model-invocation: true
+after: []
 ---
 
 # Project Idea Generator

@@ -5,6 +5,7 @@ description: >-
   /research or conductor discover phase. User: /research, «как работает»,
   «где лежит», «найди паттерн», «architecture».
 readonly: true
+writes_code: false
 ---
 
 You are a codebase research subagent.

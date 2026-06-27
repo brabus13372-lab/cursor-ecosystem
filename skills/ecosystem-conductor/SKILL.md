@@ -8,6 +8,7 @@ description: >-
   spanning exploration, implementation, tests, and review. This skill is the
   only skill that may self-activate for routing; all other ecosystem skills
   require explicit slash or conductor delegation.
+after: []
 ---
 
 # Ecosystem Conductor
@@ -57,6 +58,7 @@ Do **not** activate when:
 | `bot-designer` (agent) | `/bot-agent` | Telegram bot-only implementation |
 | `subagent-orchestrator` | `/orchestrate` | Delegation rules, briefs, synthesis |
 | `project-idea-generator` | `/ideas` | Production-ready project ideas from constraints |
+| `memory-dream` | `/dream` | Cross-session memory consolidation (`.cursor/memory/`) |
 | `ecosystem-conductor` | `/conductor` | This skill — autonomous routing |
 
 ### Built-in Cursor review (PR / branch diff)
@@ -121,15 +123,19 @@ Skip the plan line for trivial fixes.
 
 | Preset | When | Phases |
 |--------|------|--------|
-| `full` | Large/cross-cutting feature, unfamiliar area, multi-domain | Scout → Architect → Builder → Verifier → Critic → Security? → Handoff |
+| `full` | Large/cross-cutting feature, unfamiliar area, multi-domain | Orient? → Scout → Architect → Builder → Verifier → Critic → Security? → Handoff → offer /dream |
 | `fix` | Known bug, familiar area, clear file | Builder → Verifier? → Critic if sensitive |
 | `discover` | «Как работает», «где лежит», no implement yet | Scout only → ContextMap |
 | `gate` | «Перед PR», «проверь перед merge», implement already done | Verifier → Critic → Security? → DB-review if SQL |
 | `parallel_discover` | Backend + frontend + security skim in parallel | `/orchestrate` Scouts → Synthesis → TouchPointPlan → `full` or stop |
 | `ideate` | Project ideas, MVP brainstorm | `/ideas` → user picks → `full` on chosen idea |
 | `ctf` | CTF web + bot + OOB | See CTF delegation pattern below |
+| `dream` | Consolidate project memory, weekly upkeep | `memory-dream` → DreamReport |
+| `coordinator` | Large multi-domain; main agent routes only | See [coordinator-preset.md](coordinator-preset.md) |
 
 User may pass preset in prompt: `Preset: full`. Default for medium/large implement: `full`. Trivial tasks: no preset — direct edit.
+
+**Memory layer:** before Scout on `full`/`fix`/`coordinator`, run **Orient** — read `.cursor/memory/` per [memory-layer.md](memory-layer.md). **Skill chains:** [skill-chains.md](skill-chains.md). **Agent roles:** [agent-roles.md](agent-roles.md). **Coordinator:** [coordinator-preset.md](coordinator-preset.md). **Agents hub:** `~/.cursor/agents/AGENTS.md`.
 
 ### 2. Route to tools
 
@@ -149,6 +155,7 @@ Use this routing table. Pick the **first matching row**, then append follow-up s
 | Bot: ≥3 files, FSM flows, scheduler, multi-handler refactor | `bot-designer` subagent | → `test-writer` → `database-engineer` if DB writes |
 | Bot handler + Postgres in one flow | `telegram-bot-builder` or `bot-designer` | → `database-engineer` → `database-reviewer` |
 | Large task needing **parallel** subagents (conductor already chose pipeline) | `subagent-orchestrator` skill | fan out per its patterns — conductor stays router |
+| Multi-domain large task, main should not implement | preset `coordinator` | → [coordinator-preset.md](coordinator-preset.md) |
 | PR / GitHub review requested | `/review-bugbot` or `/review-security` | per user intent |
 | After non-trivial implement | `code-reviewer` subagent | → `security-reviewer` if auth/api/data |
 | Auth, API, SQL, secrets, permissions | `security-reviewer` subagent | before commit/PR |
@@ -158,6 +165,7 @@ Use this routing table. Pick the **first matching row**, then append follow-up s
 | CTF web: chall + bot + OOB/DNS exfil, remote flaky, s1/s2 without flag | `ctf-web-infra-auditor` via `/ctf-audit` | → main agent fix solve/DNS → `shell` verify → re-audit if needed |
 | CTF exploit iteration, "bot 200 but no flag" | `ctf-web-infra-auditor` | before editing solve.py or spamming /report |
 | Project ideas, startup/side-project brainstorm, MVP concepts, "что можно сделать" | `project-idea-generator` | → `/conductor` + domain skill if user picks one to build |
+| Memory stale, weekly upkeep, after large session | `memory-dream` | → DreamReport |
 | Default medium task, unclear entry | `explore` or `codebase-research` | → implement → `test-writer` → `code-reviewer` |
 
 **Trivial** (one known file, full context): implement directly — no skill, no subagent.
@@ -178,6 +186,8 @@ Conductor owns **pipeline state** across phases. Subagents return **artifacts** 
 | **Critic** | `/review`, `/security`, `/db-review` | No | `ReviewFindings` |
 | **Fixer** | Main agent | Yes | patched `ChangeSet` |
 | **Closer** | Conductor | No | `SessionHandoff` |
+| **Dreamer** | `/dream` (`memory-dream`) | Memory files only | `DreamReport` |
+| **Orient** | Conductor / hook | No | loads `.cursor/memory/` into context |
 
 **Agent ↔ tool split:** agents judge and summarize; tools verify (`shell` for tests/build, MCP/GitHub for PR). Pattern: Builder → tool verify → Fixer if fail → re-verify.
 
@@ -253,7 +263,7 @@ Require these formats in subagent briefs (`Deliverable:` field) and in synthesis
 **Low:** ...
 ```
 
-**SessionHandoff** (Closer — end of `full` / large `fix`; offer to user always, write to file only if user asked):
+**SessionHandoff** (Closer — end of `full` / large `fix`; always offer to user; **always write** `.cursor/memory/handoffs/latest.md` in project):
 
 ```markdown
 ## SessionHandoff
@@ -262,6 +272,17 @@ Require these formats in subagent briefs (`Deliverable:` field) and in synthesis
 **Files touched:** [paths]
 **Verify:** `[command]`
 **Next session:** `/conductor продолжи: [one line]. Context: [decisions above]`
+**Memory:** run `/dream` if decisions are durable across sessions
+```
+
+**DreamReport** (`memory-dream` — see skill for full workflow):
+
+```markdown
+## DreamReport
+**Status:** updated | noop
+**Files touched:** [paths under .cursor/memory/]
+**Merged:** [bullets]
+**Pruned:** [stale items or none]
 ```
 
 Normalize `/research` or `/explore` output into **ContextMap** during synthesis — do not forward raw subagent transcripts.
@@ -271,15 +292,19 @@ Normalize `/research` or `/explore` output into **ContextMap** during synthesis 
 **`full`:**
 
 ```
-PipelinePlan → Scout (if context partial/missing) → ContextMap
+PipelinePlan → Orient? (.cursor/memory/) → Scout (if context partial/missing) → ContextMap
   → Architect → TouchPointPlan
   → Builder → ChangeSet
-  → Verifier → TestReport
+  → Verifier → TestReport → chain `after:` from domain skill if applicable
   → Critic (/review) → ReviewFindings
   → Security? (/security if risk ≥ medium) → ReviewFindings
   → Fixer (if ship ready = no, max 2 rounds) → re-Verifier → re-Critic
-  → SessionHandoff
+  → SessionHandoff → write handoffs/latest.md → offer /dream
 ```
+
+**`dream`:** PipelinePlan (brief) → `memory-dream` → DreamReport → stop
+
+**`coordinator`:** See [coordinator-preset.md](coordinator-preset.md) — Orient → parallel_discover or Scout → TouchPointPlan → delegate Builders → gate → Handoff → offer /dream. Main agent does **not** write feature code.
 
 **`fix`:** PipelinePlan (brief) → Builder → Verifier? → Critic if sensitive → SessionHandoff (short)
 
@@ -316,7 +341,7 @@ Return: ContextMap only — no implementation proposals beyond Recommended entry
 
 For each selected tool:
 
-**Skill** → read `~/.cursor/skills/<name>/SKILL.md`, check activation criteria, follow instructions.
+**Skill** → read `~/.cursor/skills/<name>/SKILL.md`, check activation criteria, follow instructions. After success, if YAML has `after: [skill-names]` and conductor routed here, chain next skills per [skill-chains.md](skill-chains.md).
 
 **Subagent** → read `~/.cursor/agents/<name>.md` if it exists, launch Task with matching `subagent_type` and a structured brief (objective, scope, deliverable, constraints). Read `subagent-orchestrator` skill **only** when delegating parallel/noisy work — not for routing decisions.
 
@@ -333,6 +358,8 @@ Default for preset **`full`** (medium/large implement):
 ```
 Scout → ContextMap → Architect → TouchPointPlan → Builder → Verifier → Critic → Security? → SessionHandoff
 ```
+
+7. **SessionHandoff** → write `.cursor/memory/handoffs/latest.md` → offer `/dream`
 
 Legacy shorthand (domain routing still applies):
 
@@ -358,8 +385,9 @@ Do **not** forward raw subagent dumps. Do **not** start Builder on `full` withou
 End non-trivial work with:
 
 1. Short summary (what ran, what changed, what verified).
-2. **SessionHandoff** artifact (full template) for `full` / large tasks — so the user can paste into a new chat.
-3. Open risks or gaps.
+2. **SessionHandoff** artifact (full template) for `full` / large tasks — paste into new chat; **persist** to `.cursor/memory/handoffs/latest.md`.
+3. Offer `/dream` when durable decisions were made.
+4. Open risks or gaps.
 
 Checklist items:
 
@@ -377,10 +405,10 @@ Checklist items:
 1. Scout (`codebase-research` or `fsd-project-explorer`) → **ContextMap**
 2. Architect (main) → **TouchPointPlan**
 3. Builder (main) — minimal implementation
-4. Verifier (`test-writer` + `shell`) → **TestReport**
+4. Verifier (`test-writer` + `shell`) → **TestReport** — honor skill `after:` chains
 5. Critic (`code-reviewer`) → **ReviewFindings**
 6. Critic (`security-reviewer`) — if auth/data/API touched
-7. **SessionHandoff**
+7. **SessionHandoff** + `handoffs/latest.md` → offer `/dream`
 
 ### Quick bug fix (known area)
 
@@ -439,6 +467,8 @@ Checklist items:
 - [ ] Subagent briefs specify artifact deliverable
 - [ ] Phases synthesized to artifacts — no raw dumps
 - [ ] Critic loop ≤ 2 rounds
-- [ ] SessionHandoff on large/full tasks
+- [ ] Orient read `.cursor/memory/` when present (preset full/fix)
+- [ ] SessionHandoff on large/full tasks + handoffs/latest.md written
+- [ ] Skill `after:` chains honored when conductor routed domain skill
 - [ ] User gets concise close-out summary
 ```

@@ -7,6 +7,7 @@ description: >-
   «variants», «AnimatePresence», «микро-интеракции». For ≥3 files or full
   motion-module audit conductor may delegate to /motion-agent.
 disable-model-invocation: true
+after: [test-writer]
 ---
 
 # Motion System Builder

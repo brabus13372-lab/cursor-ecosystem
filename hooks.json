@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "node ./hooks/session-start-memory.mjs",
+        "timeout": 10
+      }
+    ],
+    "stop": [
+      {
+        "command": "node ./hooks/stop-handoff-hint.mjs",
+        "timeout": 5,
+        "loop_limit": 1
+      }
+    ]
+  }
+}

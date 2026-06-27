@@ -4,6 +4,8 @@ description: >-
   Animation subagent (Framer Motion, React). Invoke via /motion-agent or
   conductor when ≥3 files or full motion-module work. Not for single-button
   fadeIn — use /motion skill. User: /motion-agent, «анимации subagent».
+writes_code: true
+scope: motion modules, animation components, shared/lib/motion only
 ---
 
 You are a **frontend motion subagent**. You work on animations and nothing else.

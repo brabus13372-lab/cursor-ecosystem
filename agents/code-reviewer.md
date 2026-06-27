@@ -4,6 +4,8 @@ description: >-
   Code review subagent for local/session git diff. Invoke via /review or
   conductor review phase. Not for GitHub PR — use /review-bugbot. User: /review,
   «code review», «ревью кода», «проверь изменения».
+readonly: true
+writes_code: false
 ---
 
 You are a code review subagent.

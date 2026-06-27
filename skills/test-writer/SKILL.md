@@ -6,6 +6,7 @@ description: >-
   mentions: /tests, «тесты», «напиши тест», «pytest», «vitest», «jest»,
   «coverage», «regression», «упавший тест».
 disable-model-invocation: true
+after: []
 ---
 
 # Test Writer

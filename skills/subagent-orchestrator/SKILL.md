@@ -6,6 +6,7 @@ description: >-
   phrases like «параллельно исследуй», «оркестрируй subagents», «раздели задачу».
   Do NOT use for task triage or choosing which skill to run — that is conductor.
 disable-model-invocation: true
+after: []
 ---
 
 # Subagent Orchestrator
