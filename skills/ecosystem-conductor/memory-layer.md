@@ -13,7 +13,7 @@ Cross-session continuity inspired by Claude Code `autoDream` + `memdir`.
 
 ## Bootstrap (auto)
 
-When preset is `full`, `fix`, or `coordinator` and `.cursor/memory/MEMORY.md` **missing**:
+When preset is `full`, `fix`, `coordinator`, or `improve` and `.cursor/memory/MEMORY.md` **missing**:
 
 1. Create `.cursor/memory/`, `handoffs/`
 2. Copy index from `~/.cursor/skills/memory-dream/templates/MEMORY.md`
@@ -22,7 +22,7 @@ When preset is `full`, `fix`, or `coordinator` and `.cursor/memory/MEMORY.md` **
 
 ## Orient phase
 
-When preset is `full`, `fix`, or `coordinator` on an active project:
+When preset is `full`, `fix`, `coordinator`, or `improve` on an active project:
 
 1. Bootstrap if missing (above)
 2. Read `MEMORY.md` + up to 3 linked topic files for the goal
@@ -33,7 +33,7 @@ Skip Orient if user pasted full SessionHandoff.
 
 ## Handoff persistence
 
-At **SessionHandoff** (`full`, `coordinator`, large `fix`):
+At **SessionHandoff** (`full`, `coordinator`, `improve`, large `fix`):
 
 1. Emit artifact to user
 2. Write `.cursor/memory/handoffs/latest.md`
@@ -45,7 +45,7 @@ At **SessionHandoff** (`full`, `coordinator`, large `fix`):
 |---------|--------|
 | User `/dream` | Run `memory-dream` skill |
 | Preset `dream` | memory-dream only → DreamReport |
-| End of `full` / `coordinator` | Offer `/dream` |
+| End of `full` / `coordinator` / `improve` | Offer `/dream` |
 | `dream-gate.mjs` exit 0 | Conductor may suggest `/dream` |
 
 ## What memory is NOT

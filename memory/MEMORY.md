@@ -16,4 +16,5 @@
 
 ## Last consolidated
 
+- **2026-06-29** — preset `improve`, `/improve`, ImprovementPlan artifact
 - **2026-06-27** — coordinator preset, full skill chains, AGENTS.md, bootstrap memory, stop hook

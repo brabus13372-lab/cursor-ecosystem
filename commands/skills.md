@@ -19,6 +19,7 @@ Route across **skills** (`~/.cursor/skills/`), **subagents** (`~/.cursor/agents/
 | `gate` | Pre-merge verify |
 | `parallel_discover` | Parallel scouts |
 | `ideate` | `/ideas` → pick → continue |
+| `improve` | `/improve` — Scout → ImprovementPlan |
 | `ctf` | CTF web pipeline |
 | `dream` | Memory consolidation |
 
@@ -35,6 +36,7 @@ Route across **skills** (`~/.cursor/skills/`), **subagents** (`~/.cursor/agents/
 | `/bot` | telegram-bot-builder | → `/tests` |
 | `/orchestrate` | subagent-orchestrator | — |
 | `/ideas` | project-idea-generator | → user picks preset |
+| `/improve` | ecosystem-conductor (`improve`) | → user picks → `full` |
 
 ## Subagents → `/command`
 
@@ -56,6 +58,7 @@ Route across **skills** (`~/.cursor/skills/`), **subagents** (`~/.cursor/agents/
 
 ```
 /conductor Preset: coordinator  — delegate builders, no feature code in main
+/conductor Preset: improve     — Scout → ImprovementPlan → pick → full
 /conductor Preset: full         — Orient → pipeline → handoff → /dream?
 /dream                          — consolidate memory
 /db → auto /tests → /db-review

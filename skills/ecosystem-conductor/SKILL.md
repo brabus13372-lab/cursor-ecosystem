@@ -108,7 +108,7 @@ Classify along four axes:
 
 | Axis | Options |
 |------|---------|
-| **Intent** | explore · implement · fix · refactor · test · review · security · ci · motion · database · bot · ctf · ideate · architect |
+| **Intent** | explore · implement · fix · refactor · test · review · security · ci · motion · database · bot · ctf · ideate · improve · architect |
 | **Complexity** | trivial (1 file, known) · medium (2–5 files) · large (cross-cutting, unfamiliar) |
 | **Context** | sufficient in thread · partial · missing (need repo discovery) |
 | **Risk** | low · medium (auth/api/data) · high (secrets, payments, prod config) |
@@ -129,13 +129,14 @@ Skip the plan line for trivial fixes.
 | `gate` | «Перед PR», «проверь перед merge», implement already done | Verifier → Critic → Security? → DB-review if SQL |
 | `parallel_discover` | Backend + frontend + security skim in parallel | `/orchestrate` Scouts → Synthesis → TouchPointPlan → `full` or stop |
 | `ideate` | Project ideas, MVP brainstorm | `/ideas` → user picks → `full` on chosen idea |
+| `improve` | Repo health, tech debt, «что улучшить» | Orient → Scout → Advisor → ImprovementPlan → stop (→ `full` if user picks) |
 | `ctf` | CTF web + bot + OOB | See CTF delegation pattern below |
 | `dream` | Consolidate project memory, weekly upkeep | `memory-dream` → DreamReport |
 | `coordinator` | Large multi-domain; main agent routes only | See [coordinator-preset.md](coordinator-preset.md) |
 
 User may pass preset in prompt: `Preset: full`. Default for medium/large implement: `full`. Trivial tasks: no preset — direct edit.
 
-**Memory layer:** before Scout on `full`/`fix`/`coordinator`, run **Orient** — read `.cursor/memory/` per [memory-layer.md](memory-layer.md). **Skill chains:** [skill-chains.md](skill-chains.md). **Agent roles:** [agent-roles.md](agent-roles.md). **Coordinator:** [coordinator-preset.md](coordinator-preset.md). **Agents hub:** `~/.cursor/agents/AGENTS.md`.
+**Memory layer:** before Scout on `full`/`fix`/`coordinator`/`improve`, run **Orient** — read `.cursor/memory/` per [memory-layer.md](memory-layer.md). **Skill chains:** [skill-chains.md](skill-chains.md). **Agent roles:** [agent-roles.md](agent-roles.md). **Coordinator:** [coordinator-preset.md](coordinator-preset.md). **Improve:** [improve-preset.md](improve-preset.md). **Agents hub:** `~/.cursor/agents/AGENTS.md`.
 
 ### 2. Route to tools
 
@@ -164,7 +165,8 @@ Use this routing table. Pick the **first matching row**, then append follow-up s
 | Build/test/logs heavy | `shell` subagent | summarize, don't dump |
 | CTF web: chall + bot + OOB/DNS exfil, remote flaky, s1/s2 without flag | `ctf-web-infra-auditor` via `/ctf-audit` | → main agent fix solve/DNS → `shell` verify → re-audit if needed |
 | CTF exploit iteration, "bot 200 but no flag" | `ctf-web-infra-auditor` | before editing solve.py or spamming /report |
-| Project ideas, startup/side-project brainstorm, MVP concepts, "что можно сделать" | `project-idea-generator` | → `/conductor` + domain skill if user picks one to build |
+| Improve **this repo**: health check, tech debt, «что улучшить», audit architecture/DX/tests, `Preset: improve`, `/improve` | preset `improve` | → [improve-preset.md](improve-preset.md) — Scout → ImprovementPlan → stop; user picks → `full` |
+| Project ideas, startup/side-project brainstorm, MVP concepts, "что можно сделать" (greenfield) | `project-idea-generator` | → `/conductor` + domain skill if user picks one to build |
 | Memory stale, weekly upkeep, after large session | `memory-dream` | → DreamReport |
 | Default medium task, unclear entry | `explore` or `codebase-research` | → implement → `test-writer` → `code-reviewer` |
 
@@ -181,6 +183,7 @@ Conductor owns **pipeline state** across phases. Subagents return **artifacts** 
 | **Router** | Conductor (this skill) | No | `PipelinePlan` |
 | **Scout** | `/explore`, `/research`, `/fsd-map` | No | `ContextMap` |
 | **Architect** | Main agent | No | `TouchPointPlan` |
+| **Advisor** | Main agent (`improve` preset) | No | `ImprovementPlan` |
 | **Builder** | Main agent | Yes | `ChangeSet` (implicit: git diff) |
 | **Verifier** | `/tests`, `/terminal` | Tests only | `TestReport` |
 | **Critic** | `/review`, `/security`, `/db-review` | No | `ReviewFindings` |
@@ -198,7 +201,7 @@ Track across phases — do not re-explore the whole repo each step:
 ```
 intent, constraints, done_criteria, risk, preset
 current_phase
-artifacts: { PipelinePlan?, ContextMap?, TouchPointPlan?, TestReport?, ReviewFindings? }
+artifacts: { PipelinePlan?, ContextMap?, TouchPointPlan?, ImprovementPlan?, TestReport?, ReviewFindings? }
 decisions_log: [{ phase, decision, why }]
 ```
 
@@ -212,7 +215,7 @@ Require these formats in subagent briefs (`Deliverable:` field) and in synthesis
 
 ```markdown
 ## PipelinePlan
-**Preset:** full | fix | discover | gate | parallel_discover | ideate | ctf
+**Preset:** full | fix | discover | gate | parallel_discover | ideate | improve | ctf
 **Goal:** [one sentence]
 **Constraints:** [do-not-touch, stack limits]
 **Done criteria:** [how we know it's finished]
@@ -230,6 +233,28 @@ Require these formats in subagent briefs (`Deliverable:` field) and in synthesis
 **Patterns:** [how this repo already solves similar problems]
 **Open questions:** [max 2, or state assumptions made]
 **Recommended entry:** [where Builder should start]
+**Health signals:** (required when preset is `improve` — omit otherwise)
+- [category] — `path` — [observable gap/smell, one line each]
+```
+
+**ImprovementPlan** (Advisor — preset `improve` only; no code changes):
+
+```markdown
+## ImprovementPlan
+**Project:** [repo or scope]
+**Evidence:** [ContextMap Health signals + memory pointers]
+**Quick wins:**
+- [item] — impact/effort — evidence path
+**Medium:**
+- ...
+**Strategic:**
+- ...
+**Do-not-touch:**
+- [area] — [why leave it]
+**Recommended next:**
+1. [top pick] — `/conductor Preset: full — [one-line goal]`
+**Draft TouchPointPlan:** (optional, for top pick only)
+- Create / Modify / Do not touch / Verification
 ```
 
 **TouchPointPlan** (Architect — before Builder on `full` / `parallel_discover`):
@@ -316,6 +341,15 @@ PipelinePlan → Orient? (.cursor/memory/) → Scout (if context partial/missing
 
 **`ideate`:** `project-idea-generator` → user picks → new `full` pipeline
 
+**`improve`:** See [improve-preset.md](improve-preset.md)
+
+```
+PipelinePlan → Orient → Scout → ContextMap (+ Health signals)
+  → Advisor → ImprovementPlan → stop
+  → SessionHandoff (short) → handoffs/latest.md → offer /dream
+  → user picks item → new `full` pipeline (use Draft TouchPointPlan if present)
+```
+
 ### Critic loop
 
 When `ReviewFindings` has **Ship ready: no**:
@@ -329,6 +363,8 @@ Never run Critic before Builder unless preset is `gate` or user asked review-onl
 
 ### Scout brief (copy into Task `prompt`)
 
+**Default:**
+
 ```
 Objective: [focused question or map request]
 Scope: [directories — and what to avoid]
@@ -336,6 +372,8 @@ Deliverable: ContextMap artifact (template in ecosystem-conductor skill)
 Constraints: read-only; max ~25 lines; file paths required
 Return: ContextMap only — no implementation proposals beyond Recommended entry
 ```
+
+**Preset `improve`:** use the scout brief in [improve-preset.md](improve-preset.md) — ContextMap **must** include **Health signals**.
 
 ### 3. Invoke correctly
 
@@ -434,6 +472,16 @@ Checklist items:
 2. Main agent — fix
 3. `shell` — reproduce CI command locally
 
+### Repo improvements (preset `improve`)
+
+1. Orient — `.cursor/memory/`
+2. Scout (`codebase-research`, `explore`, `fsd-project-explorer`, or parallel via `/orchestrate`) → **ContextMap** + **Health signals**
+3. Advisor (main) → **ImprovementPlan** — evidence-based; no generic advice
+4. Stop — user picks item → **TouchPointPlan** / `Preset: full`
+5. Short **SessionHandoff** + `handoffs/latest.md` → offer `/dream`
+
+See [improve-preset.md](improve-preset.md). Do **not** run Builder on `improve` unless user explicitly continues to `full`.
+
 ### CTF web (chall + bot + OOB)
 
 1. `ctf-web-infra-auditor` — remote API, DNS TXT, local vs remote drift (readonly)
@@ -460,14 +508,15 @@ Checklist items:
 
 ```
 - [ ] Intent, complexity, context, risk classified
-- [ ] Pipeline preset chosen (full/fix/discover/gate/…)
+- [ ] Pipeline preset chosen (full/fix/discover/improve/gate/…)
 - [ ] PipelinePlan stated (if non-trivial)
 - [ ] Scout → ContextMap before Architect (if preset full + context missing)
 - [ ] TouchPointPlan before Builder (if preset full)
 - [ ] Subagent briefs specify artifact deliverable
 - [ ] Phases synthesized to artifacts — no raw dumps
 - [ ] Critic loop ≤ 2 rounds
-- [ ] Orient read `.cursor/memory/` when present (preset full/fix)
+- [ ] Orient read `.cursor/memory/` when present (preset full/fix/improve/coordinator)
+- [ ] ImprovementPlan emitted on preset `improve` — no Builder without user OK
 - [ ] SessionHandoff on large/full tasks + handoffs/latest.md written
 - [ ] Skill `after:` chains honored when conductor routed domain skill
 - [ ] User gets concise close-out summary

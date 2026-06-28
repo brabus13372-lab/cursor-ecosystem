@@ -2,7 +2,21 @@
 
 ## Presets
 
-`full` · `coordinator` · `fix` · `discover` · `gate` · `parallel_discover` · `ideate` · `ctf` · `dream`
+`full` · `coordinator` · `fix` · `discover` · `gate` · `parallel_discover` · `ideate` · **`improve`** · `ctf` · `dream`
+
+## Improve (2026-06-29)
+
+Repo health — not greenfield (`ideate`), not locate-only (`discover`), not diff review (`gate`).
+
+```
+Orient → Scout → ContextMap (+ Health signals) → Advisor → ImprovementPlan → stop
+```
+
+- Slash: `/improve` or `Preset: improve`
+- Doc: `skills/ecosystem-conductor/improve-preset.md`
+- User picks item → `Preset: full`
+- No Builder until user explicitly continues
+- Canvas optional tail (not core graph)
 
 ## Coordinator
 
@@ -14,11 +28,11 @@ Orient (bootstrap memory if missing) → Scout → Architect → Builder → Ver
 
 ## Artifacts
 
-PipelinePlan, ContextMap, TouchPointPlan, TestReport, ReviewFindings, SessionHandoff, DreamReport
+PipelinePlan, ContextMap, TouchPointPlan, **ImprovementPlan**, TestReport, ReviewFindings, SessionHandoff, DreamReport
 
 ## Handoff
 
-Always `.cursor/memory/handoffs/latest.md` on large/full/coordinator sessions.
+Always `.cursor/memory/handoffs/latest.md` on large/full/coordinator/**improve** sessions.
 
 ## Skill chains
 

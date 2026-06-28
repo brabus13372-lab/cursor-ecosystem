@@ -13,10 +13,11 @@ Trigger **ecosystem-conductor** — the **only auto-router** for skills, command
 | `gate` | Pre-PR / pre-merge verification |
 | `parallel_discover` | Parallel scouts → merge ContextMap |
 | `ideate` | Project ideas → then `full` |
+| `improve` | Repo health → Scout → ImprovementPlan → optional `full` |
 | `ctf` | CTF web + bot + OOB |
 | `dream` | Memory consolidation (`/dream`) |
 
-**Memory:** Orient + auto-bootstrap `.cursor/memory/` on `full`/`fix`/`coordinator`. Hook injects MEMORY on session start.
+**Memory:** Orient + auto-bootstrap `.cursor/memory/` on `full`/`fix`/`coordinator`/`improve`. Hook injects MEMORY on session start.
 
 ## Steps
 

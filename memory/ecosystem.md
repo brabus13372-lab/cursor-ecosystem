@@ -17,6 +17,7 @@
 ## Conductor docs
 
 - `coordinator-preset.md` — Preset: coordinator
+- `improve-preset.md` — Preset: improve (repo health → ImprovementPlan)
 - `memory-layer.md` — Orient, bootstrap, handoffs
 - `skill-chains.md` — all `after:` + default chains
 - `agent-roles.md` — readonly / writes_code matrix
@@ -27,7 +28,7 @@ Hub: **AGENTS.md** — 8 agents, Scout/Builder/Critic
 
 ## Commands
 
-Mirror skills + `/agents` hub. See `commands/skills.md`.
+Mirror skills + `/agents` hub + `/improve`. See `commands/skills.md`.
 
 ## Hooks
 

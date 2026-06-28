@@ -12,6 +12,7 @@ Hub: `~/.cursor/agents/AGENTS.md`
 | Coordinator | Main agent (`coordinator` preset) | **No** (feature code) | — | Task briefs, synthesis |
 | Scout | `explore`, `codebase-research`, `fsd-project-explorer` | No | Yes | Read, grep, search |
 | Architect | Main agent | No | — | TouchPointPlan |
+| Advisor | Main agent (`improve` preset) | No | — | ImprovementPlan |
 | Builder | Main (`full`/`fix`) or subagents | Yes | — | Bounded by scope |
 | Verifier | `test-writer`, `shell` | Tests only | — | Run tests/builds |
 | Critic | `code-reviewer`, `security-reviewer`, `database-reviewer`, `ctf-web-infra-auditor` | No | Yes | `git diff`, read |
@@ -30,6 +31,8 @@ Hub: `~/.cursor/agents/AGENTS.md`
 ## Coordinator preset
 
 When `Preset: coordinator`: Coordinator = main thread. All feature edits go to Builder subagents or domain skills. See [coordinator-preset.md](coordinator-preset.md).
+
+When `Preset: improve`: Advisor = main thread. No feature edits — Scout → ImprovementPlan only. See [improve-preset.md](improve-preset.md).
 
 ## Subagent brief constraints
 
