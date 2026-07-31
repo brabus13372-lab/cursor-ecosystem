@@ -17,6 +17,8 @@ Trigger **ecosystem-conductor** — the **only auto-router** for skills, command
 | `ctf` | CTF web + bot + OOB |
 | `dream` | Memory consolidation (`/dream`) |
 
+**Aliases:** `Scout` → `discover` (Scout is a role, not a preset). Typos `Impove` / `improv` / `imporve` → `improve`.
+
 **Memory:** Orient + auto-bootstrap `.cursor/memory/` on `full`/`fix`/`coordinator`/`improve`. Hook injects MEMORY on session start.
 
 ## Steps

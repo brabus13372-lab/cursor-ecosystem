@@ -1,7 +1,7 @@
 # Cursor Ecosystem
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![Skills](https://img.shields.io/badge/skills-10-green)
+![Skills](https://img.shields.io/badge/skills-9-green)
 ![Commands](https://img.shields.io/badge/commands-23-blue)
 ![Agents](https://img.shields.io/badge/agents-8-purple)
 
@@ -58,13 +58,15 @@ flowchart TD
 ```
 cursor-ecosystem/
 ├── README.md / README.en.md
-├── install.ps1 / install.sh
+├── package.json                   # npm test (hook smokes)
+├── install.ps1 / install.sh       # -DryRun / -Backup
 ├── hooks.json
 ├── hooks/
 │   ├── session-start-memory.mjs   # inject MEMORY + handoff
-│   └── stop-handoff-hint.mjs      # напоминание про handoff (1×/сессию)
+│   ├── stop-handoff-hint.mjs      # напоминание про handoff (1×/сессию)
+│   └── __tests__/                 # node:test smoke (stdin → JSON)
 ├── memory/                        # глобальный шаблон (~/.cursor/memory/)
-├── skills/                          # 10 skills
+├── skills/                          # 9 skills
 │   ├── ecosystem-conductor/       # роутер + coordinator/improve presets, skill-chains…
 │   ├── memory-dream/              # консолидация памяти (autoDream-like)
 │   └── …
@@ -88,7 +90,9 @@ cursor-ecosystem/
 ```powershell
 git clone https://github.com/brabus13372-lab/cursor-ecosystem.git
 cd cursor-ecosystem
-.\install.ps1
+.\install.ps1 -DryRun          # план без записи
+.\install.ps1 -Backup          # бэкап ~/.cursor-* затем install
+.\install.ps1                  # обычная установка (overwrite)
 ```
 
 **macOS / Linux:**
@@ -96,8 +100,13 @@ cd cursor-ecosystem
 ```bash
 git clone https://github.com/brabus13372-lab/cursor-ecosystem.git
 cd cursor-ecosystem
-chmod +x install.sh && ./install.sh
+chmod +x install.sh
+./install.sh --dry-run         # план без записи
+./install.sh --backup          # бэкап ~/.cursor-backup-* затем install
+./install.sh                   # обычная установка (overwrite)
 ```
+
+Скрипт показывает сводку repo vs `~/.cursor` (число файлов / hash `hooks.json`) и **WARNING**, если destination отличается. `-Backup` / `--backup` копирует существующие `skills|commands|agents|hooks|memory|hooks.json` в `~/.cursor-backup-YYYYMMDD-HHmmss` перед overwrite.
 
 Перезапусти Cursor или открой новый Agent chat. Проверь вкладку **Hooks** в настройках.
 
@@ -144,6 +153,8 @@ Copy-Item -Recurse -Force "$src\memory\*"   "$dst\memory\"
 | **`improve`** | Улучшения **этого** репо | Orient → Scout → ImprovementPlan → выбор → `full` |
 | **`ctf`** | CTF web + bot + OOB | `/ctf-audit` pipeline |
 | **`dream`** | Память | `/dream` → DreamReport |
+
+**Aliases:** `Scout` → `discover` (роль, не preset). Опечатки `Impove` / `improv` → `improve`.
 
 ### Preset `coordinator`
 
@@ -203,6 +214,8 @@ PipelinePlan → Orient (.cursor/memory/) → Scout? → ContextMap
 |---------|--------|--------|
 | `sessionStart` | `session-start-memory.mjs` | Подмешивает MEMORY + handoff в контекст |
 | `stop` (loop_limit: 1) | `stop-handoff-hint.mjs` | Напоминание записать handoff |
+
+Smoke tests (stdin JSON → stdout JSON): `npm test` или `node --test hooks/__tests__/*.test.mjs`.
 
 ### `/dream`
 
@@ -356,6 +369,12 @@ Skill = полный workflow. Command = «прочитай skill X и выпо�
 **Чем `improve` от `ideate`?**  
 `improve` — что улучшить **в текущем репо** (Scout + evidence). `ideate` (`/ideas`) — идеи **нового** проекта с нуля.
 
+**`Preset: Scout`?**  
+Это роль, не preset → conductor мапит на `discover`. Опечатки вроде `Impove` → `improve`.
+
+**Как не затереть локальные правки в `~/.cursor`?**  
+`.\install.ps1 -DryRun` / `./install.sh --dry-run`, потом `-Backup` / `--backup`.
+
 **Откуда идеи?**  
 Память/dream/coordinator — из изучения leaked Claude Code CLI (архив, не runtime). Bash permissions и BUDDY **не** переносились.
 
@@ -368,11 +387,20 @@ Skill = полный workflow. Command = «прочитай skill X и выпо�
 
 | Category | Count |
 |----------|-------|
-| Skills | 10 |
+| Skills | 9 |
 | Commands | 23 |
 | Agents | 8 (+ AGENTS.md) |
-| Hooks | 2 |
+| Hooks | 2 (+ smoke tests) |
 | Conductor supplement docs | 5 |
+
+---
+
+## Verify
+
+```powershell
+npm test
+# or: node --test hooks/__tests__/*.test.mjs
+```
 
 ---
 

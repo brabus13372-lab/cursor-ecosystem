@@ -1,0 +1,11 @@
+{
+  "name": "cursor-ecosystem",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test hooks/__tests__/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

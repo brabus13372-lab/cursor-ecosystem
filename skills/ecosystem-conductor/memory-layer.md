@@ -9,6 +9,7 @@ Cross-session continuity inspired by Claude Code `autoDream` + `memdir`.
 | Project | `.cursor/memory/MEMORY.md` | Index for current repo |
 | Project | `.cursor/memory/*.md` | Topic files |
 | Project | `.cursor/memory/handoffs/latest.md` | Last SessionHandoff |
+| Project | `.cursor/conductor-prompts.md` | Optional prioritized `/conductor` backlog (Orient may follow if linked from MEMORY) |
 | Global | `~/.cursor/memory/MEMORY.md` | Ecosystem/skills/hooks meta |
 
 ## Bootstrap (auto)
@@ -27,7 +28,8 @@ When preset is `full`, `fix`, `coordinator`, or `improve` on an active project:
 1. Bootstrap if missing (above)
 2. Read `MEMORY.md` + up to 3 linked topic files for the goal
 3. Skim `handoffs/latest.md` if present
-4. Fold into context — do not re-ask known decisions
+4. If MEMORY (or conventions) links **`.cursor/conductor-prompts.md`**, open it for next paste-ready `/conductor` work
+5. Fold into context — do not re-ask known decisions
 
 Skip Orient if user pasted full SessionHandoff.
 

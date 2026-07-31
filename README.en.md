@@ -1,7 +1,7 @@
 # Cursor Ecosystem
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![Skills](https://img.shields.io/badge/skills-10-green)
+![Skills](https://img.shields.io/badge/skills-9-green)
 ![Commands](https://img.shields.io/badge/commands-23-blue)
 ![Agents](https://img.shields.io/badge/agents-8-purple)
 
@@ -23,7 +23,25 @@ Ideas adapted from Claude Code architecture (autoDream, coordinator mode, skill 
 | Hooks | Memory inject, handoff hint | `hooks/`, `hooks.json` | `~/.cursor/` |
 | Memory | Global ecosystem index | `memory/` | `~/.cursor/memory/` |
 
-Per-project memory: `.cursor/memory/` in each repo (bootstrap via conductor or `/dream`).
+Per-project memory: `.cursor/memory/` in each repo (bootstrap via conductor or `/dream`). Optional local backlog: `.cursor/conductor-prompts.md` (often gitignored with `.cursor/`).
+
+---
+
+## Repo layout
+
+```
+cursor-ecosystem/
+├── package.json                 # npm test
+├── install.ps1 / install.sh     # -DryRun / -Backup
+├── hooks/
+│   ├── session-start-memory.mjs
+│   ├── stop-handoff-hint.mjs
+│   └── __tests__/               # node:test smokes
+├── memory/                      # global template → ~/.cursor/memory/
+├── skills/                      # 9 skills
+├── commands/                    # 23 commands
+└── agents/                      # 8 agents + AGENTS.md
+```
 
 ---
 
@@ -34,10 +52,21 @@ Per-project memory: `.cursor/memory/` in each repo (bootstrap via conductor or `
 ```powershell
 git clone https://github.com/brabus13372-lab/cursor-ecosystem.git
 cd cursor-ecosystem
-.\install.ps1
+.\install.ps1 -DryRun     # plan only
+.\install.ps1 -Backup     # backup then install
+.\install.ps1             # overwrite install
 ```
 
-**macOS/Linux:** `chmod +x install.sh && ./install.sh`
+**macOS/Linux:**
+
+```bash
+chmod +x install.sh
+./install.sh --dry-run
+./install.sh --backup
+./install.sh
+```
+
+Scripts print a repo vs `~/.cursor` summary and warn on drift. `--backup` / `-Backup` snapshots to `~/.cursor-backup-YYYYMMDD-HHmmss` before overwrite.
 
 Requires Cursor with Skills + Hooks, Node.js 18+. Restart Cursor after install.
 
@@ -57,6 +86,8 @@ Requires Cursor with Skills + Hooks, Node.js 18+. Restart Cursor after install.
 | `improve` | `/improve` — Scout → **ImprovementPlan** → pick → `full` (**this repo**) |
 | `ctf` | CTF web pipeline |
 | `dream` | Memory consolidation |
+
+**Aliases:** `Scout` → `discover` (role, not a preset). Typos `Impove` / `improv` → `improve`.
 
 ### Preset `coordinator`
 
@@ -82,6 +113,7 @@ Orient → Scout (ContextMap + Health signals) → Advisor → ImprovementPlan �
 - **`sessionStart` hook** — injects MEMORY + latest handoff
 - **`stop` hook** — one-time handoff reminder per session
 - **SessionHandoff** — written to `.cursor/memory/handoffs/latest.md`
+- Hook smoke tests: `npm test`
 
 ---
 
@@ -156,7 +188,14 @@ what to improve in architecture and CI
 
 ## Stats
 
-10 skills · 23 commands · 8 agents · 2 hooks · 5 conductor supplement docs
+9 skills · 23 commands · 8 agents · 2 hooks (+ smokes) · 5 conductor supplement docs
+
+## Verify
+
+```bash
+npm test
+# or: node --test hooks/__tests__/*.test.mjs
+```
 
 ## License
 

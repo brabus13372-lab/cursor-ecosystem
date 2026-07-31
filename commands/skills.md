@@ -23,6 +23,8 @@ Route across **skills** (`~/.cursor/skills/`), **subagents** (`~/.cursor/agents/
 | `ctf` | CTF web pipeline |
 | `dream` | Memory consolidation |
 
+**Aliases:** `Scout` → `discover` (role, not preset). Typos `Impove` / `improv` / `imporve` → `improve`.
+
 ## Skills → `/command`
 
 | Command | Skill | `after:` chain |

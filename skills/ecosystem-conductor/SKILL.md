@@ -136,6 +136,14 @@ Skip the plan line for trivial fixes.
 
 User may pass preset in prompt: `Preset: full`. Default for medium/large implement: `full`. Trivial tasks: no preset — direct edit.
 
+**Preset aliases / typos** (normalize before picking the table row):
+
+| User wrote | Treat as | Why |
+|------------|----------|-----|
+| `Scout` | `discover` | Scout is a **role**, not a named preset |
+| `Impove`, `improv`, `imporve` | `improve` | common typos |
+| `Improve` / mixed case | `improve` | case-insensitive match |
+
 **Memory layer:** before Scout on `full`/`fix`/`coordinator`/`improve`, run **Orient** — read `.cursor/memory/` per [memory-layer.md](memory-layer.md). **Skill chains:** [skill-chains.md](skill-chains.md). **Agent roles:** [agent-roles.md](agent-roles.md). **Coordinator:** [coordinator-preset.md](coordinator-preset.md). **Improve:** [improve-preset.md](improve-preset.md). **Agents hub:** `~/.cursor/agents/AGENTS.md`.
 
 ### 2. Route to tools
