@@ -19,7 +19,7 @@
 - `coordinator-preset.md` — Preset: coordinator
 - `improve-preset.md` — Preset: improve (repo health → ImprovementPlan)
 - `memory-layer.md` — Orient, bootstrap, handoffs
-- `skill-chains.md` — `after:` registry + **all 10** default preset chains (2026-08-01)
+- `skill-chains.md` — `after:` registry + **6** named preset chains (`full`/`fix`/`discover`/`improve`/`gate`/`coordinator`)
 - `agent-roles.md` — readonly / writes_code matrix
 
 ## Agents (`~/.cursor/agents/`)

@@ -17,7 +17,7 @@ Background-style **memory consolidation** for Cursor projects. Synthesize recent
 ## Activation
 
 - User typed `/dream`
-- Conductor preset `dream` or end of large `full` when handoff exists but memory is stale
+- Conductor routes here from Signals (memory stale / weekly upkeep), user typed `/dream`, or end of large `full` when handoff exists but memory is stale
 - `.cursor/memory/.dream-state.json` says consolidation is due (see `scripts/dream-gate.mjs`)
 
 Do **not** run when:

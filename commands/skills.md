@@ -13,17 +13,15 @@ Route across **skills** (`~/.cursor/skills/`), **subagents** (`~/.cursor/agents/
 | Preset | When |
 |--------|------|
 | `full` | Default large implement |
-| `coordinator` | Multi-domain — main routes, subagents build |
 | `fix` | Known bug |
 | `discover` | Research only |
-| `gate` | Pre-merge verify |
-| `parallel_discover` | Parallel scouts |
-| `ideate` | `/ideas` → pick → continue |
 | `improve` | `/improve` — Scout → ImprovementPlan |
-| `ctf` | CTF web pipeline |
-| `dream` | Memory consolidation |
+| `gate` | Pre-merge verify |
+| `coordinator` | Multi-domain — main routes, subagents build |
 
-**Aliases:** `Scout` → `discover` (role, not preset). Typos `Impove` / `improv` / `imporve` → `improve`.
+**Not named presets:** `/dream` (`memory-dream`), `/ideas` (then optional `full`), `/ctf-audit` (domain routing), `parallel_discover` (Scout/orchestrate **phase**).
+
+**Aliases:** `Scout` → `discover` (role, not a named preset). Typos `Impove` / `improv` / `imporve` → `improve`.
 
 ## Skills → `/command`
 
