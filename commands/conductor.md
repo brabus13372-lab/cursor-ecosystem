@@ -7,17 +7,15 @@ Trigger **ecosystem-conductor** — the **only auto-router** for skills, command
 | Preset | Use when |
 |--------|----------|
 | `full` | Large feature, cross-cutting, unfamiliar (default) |
-| `coordinator` | Multi-domain; main routes, subagents build |
 | `fix` | Known bug, familiar area |
 | `discover` | Research only — no implement |
-| `gate` | Pre-PR / pre-merge verification |
-| `parallel_discover` | Parallel scouts → merge ContextMap |
-| `ideate` | Project ideas → then `full` |
 | `improve` | Repo health → Scout → ImprovementPlan → optional `full` |
-| `ctf` | CTF web + bot + OOB |
-| `dream` | Memory consolidation (`/dream`) |
+| `gate` | Pre-PR / pre-merge verification |
+| `coordinator` | Multi-domain; main routes, subagents build |
 
-**Aliases:** `Scout` → `discover` (Scout is a role, not a preset). Typos `Impove` / `improv` / `imporve` → `improve`.
+**Not named presets** (still available): `/dream` (`memory-dream`; Signals: memory stale / weekly upkeep); `/ideas` (then user may continue with `full`); `/ctf-audit` (domain routing like `/bot`/`/db`); `parallel_discover` (Scout/orchestrate **phase** inside `coordinator`).
+
+**Aliases:** `Scout` → `discover` (Scout is a role, not a named preset). Typos `Impove` / `improv` / `imporve` → `improve`.
 
 **Memory:** Orient + auto-bootstrap `.cursor/memory/` on `full`/`fix`/`coordinator`/`improve`. Hook injects MEMORY on session start.
 

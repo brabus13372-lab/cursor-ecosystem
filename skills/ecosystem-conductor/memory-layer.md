@@ -46,7 +46,7 @@ At **SessionHandoff** (`full`, `coordinator`, `improve`, large `fix`):
 | Trigger | Action |
 |---------|--------|
 | User `/dream` | Run `memory-dream` skill |
-| Preset `dream` | memory-dream only → DreamReport |
+| Signals (memory stale / weekly upkeep) | `memory-dream` → DreamReport |
 | End of `full` / `coordinator` / `improve` | Offer `/dream` |
 | `dream-gate.mjs` exit 0 | Conductor may suggest `/dream` |
 

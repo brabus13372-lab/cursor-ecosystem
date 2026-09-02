@@ -144,17 +144,15 @@ Copy-Item -Recurse -Force "$src\memory\*"   "$dst\memory\"
 | Preset | Когда | Суть |
 |--------|-------|------|
 | **`full`** | Большая фича, незнакомая область | Orient → Scout → Architect → Builder → Verifier → Critic → Handoff → `/dream`? |
-| **`coordinator`** | Multi-domain, много файлов | Main **не пишет** feature code — только роутит subagents |
 | **`fix`** | Известный баг | Builder → Verifier? → Critic? |
 | **`discover`** | Только исследование | Scout → ContextMap |
-| **`gate`** | Перед merge | Tests + review + security |
-| **`parallel_discover`** | Параллельные scouts | `/orchestrate` → merge → `full` |
-| **`ideate`** | Идеи **нового** проекта | `/ideas` → выбор → `full` |
 | **`improve`** | Улучшения **этого** репо | Orient → Scout → ImprovementPlan → выбор → `full` |
-| **`ctf`** | CTF web + bot + OOB | `/ctf-audit` pipeline |
-| **`dream`** | Память | `/dream` → DreamReport |
+| **`gate`** | Перед merge | Tests + review + security |
+| **`coordinator`** | Multi-domain, много файлов | Main **не пишет** feature code — только роутит subagents |
 
-**Aliases:** `Scout` → `discover` (роль, не preset). Опечатки `Impove` / `improv` → `improve`.
+**Не peer-строки Preset-таблицы** (доступны как skill/command/фаза): `/dream` (`memory-dream`; conductor роутит из Signals — stale memory / weekly upkeep); `/ideas` (`project-idea-generator`, потом можно продолжить `full`); `/ctf-audit` (domain routing как `/bot`/`/db`); `parallel_discover` (фаза Scout/orchestrate внутри `coordinator` — `/orchestrate` → merge ContextMap → `full` или stop).
+
+**Aliases:** `Scout` → `discover` (роль, не preset). Опечатки `Impove` / `improv` / `imporve` → `improve`.
 
 ### Preset `coordinator`
 
@@ -253,7 +251,7 @@ Hub: `agents/AGENTS.md` · Матрица: `skills/ecosystem-conductor/agent-rol
 
 ---
 
-## Skills (10)
+## Skills (9)
 
 | Skill | Command | Описание |
 |-------|---------|----------|
@@ -366,8 +364,8 @@ Skill = полный workflow. Command = «прочитай skill X и выпо�
 **Зачем `coordinator`?**  
 Когда задача на несколько доменов — main оркестрирует, builders пишут в своих scope.
 
-**Чем `improve` от `ideate`?**  
-`improve` — что улучшить **в текущем репо** (Scout + evidence). `ideate` (`/ideas`) — идеи **нового** проекта с нуля.
+**Чем `improve` от `/ideas`?**  
+`improve` — что улучшить **в текущем репо** (Scout + evidence). `/ideas` (`project-idea-generator`) — идеи **нового** проекта с нуля. `ideate` — не named preset.
 
 **`Preset: Scout`?**  
 Это роль, не preset → conductor мапит на `discover`. Опечатки вроде `Impove` → `improve`.

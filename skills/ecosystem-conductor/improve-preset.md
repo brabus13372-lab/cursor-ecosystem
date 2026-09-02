@@ -1,6 +1,6 @@
 # Improve preset
 
-Evidence-based **improvement proposals for the current repo** — not greenfield ideas (`ideate`), not locate-only (`discover`), not pre-merge diff review (`gate`).
+Evidence-based **improvement proposals for the current repo** — not greenfield ideas (`/ideas`), not locate-only (`discover`), not pre-merge diff review (`gate`).
 
 ## When to use
 
@@ -13,17 +13,17 @@ Evidence-based **improvement proposals for the current repo** — not greenfield
 
 **Do NOT use when:**
 
-- Greenfield / startup / side-project brainstorm → `ideate` (`/ideas`)
+- Greenfield / startup / side-project brainstorm → `/ideas` (`project-idea-generator`)
 - «Как работает X», «где лежит Y» without recommendations → `discover`
 - «Проверь diff / перед PR» → `gate`
 - User already picked one improvement and wants code → `full` or `fix`
 
-## vs other presets
+## vs other presets / skills
 
-| Preset | Question answered |
+| Entry | Question answered |
 |--------|-------------------|
 | `discover` | Where / how does it work? |
-| `ideate` | What **new** product could I build? |
+| `/ideas` | What **new** product could I build? (skill, not a named preset) |
 | `improve` | What should I **improve in this repo**? |
 | `gate` | Is **current change** safe to merge? |
 

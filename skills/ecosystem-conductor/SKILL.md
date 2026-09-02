@@ -126,15 +126,20 @@ Skip the plan line for trivial fixes.
 | `full` | Large/cross-cutting feature, unfamiliar area, multi-domain | Orient? → Scout → Architect → Builder → Verifier → Critic → Security? → Handoff → offer /dream |
 | `fix` | Known bug, familiar area, clear file | Builder → Verifier? → Critic if sensitive |
 | `discover` | «Как работает», «где лежит», no implement yet | Scout only → ContextMap |
-| `gate` | «Перед PR», «проверь перед merge», implement already done | Verifier → Critic → Security? → DB-review if SQL |
-| `parallel_discover` | Backend + frontend + security skim in parallel | `/orchestrate` Scouts → Synthesis → TouchPointPlan → `full` or stop |
-| `ideate` | Project ideas, MVP brainstorm | `/ideas` → user picks → `full` on chosen idea |
 | `improve` | Repo health, tech debt, «что улучшить» | Orient → Scout → Advisor → ImprovementPlan → stop (→ `full` if user picks) |
-| `ctf` | CTF web + bot + OOB | See CTF delegation pattern below |
-| `dream` | Consolidate project memory, weekly upkeep | `memory-dream` → DreamReport |
+| `gate` | «Перед PR», «проверь перед merge», implement already done | Verifier → Critic → Security? → DB-review if SQL |
 | `coordinator` | Large multi-domain; main agent routes only | See [coordinator-preset.md](coordinator-preset.md) |
 
 User may pass preset in prompt: `Preset: full`. Default for medium/large implement: `full`. Trivial tasks: no preset — direct edit.
+
+**Not named presets** — still available via slash, Signals, or as a phase inside another preset (not peer rows of the table above):
+
+| Entry | Kind | When | What runs |
+|-------|------|------|-----------|
+| `/dream` (`memory-dream`) | skill / command | Memory stale, weekly upkeep | `memory-dream` → DreamReport |
+| `/ideas` (`project-idea-generator`) | skill / command | Project ideas, MVP brainstorm | `/ideas` → user may continue with `full` |
+| `/ctf-audit` | domain routing (like `/bot`, `/db`) | CTF web + bot + OOB | See CTF delegation pattern below |
+| `parallel_discover` | Scout / orchestrate **phase** | Backend + frontend + security skim in parallel | `/orchestrate` Scouts → merge ContextMap → continue `full` or stop |
 
 **Preset aliases / typos** (normalize before picking the table row):
 
@@ -223,7 +228,7 @@ Require these formats in subagent briefs (`Deliverable:` field) and in synthesis
 
 ```markdown
 ## PipelinePlan
-**Preset:** full | fix | discover | gate | parallel_discover | ideate | improve | ctf
+**Preset:** full | fix | discover | improve | gate | coordinator
 **Goal:** [one sentence]
 **Constraints:** [do-not-touch, stack limits]
 **Done criteria:** [how we know it's finished]
@@ -265,7 +270,7 @@ Require these formats in subagent briefs (`Deliverable:` field) and in synthesis
 - Create / Modify / Do not touch / Verification
 ```
 
-**TouchPointPlan** (Architect — before Builder on `full` / `parallel_discover`):
+**TouchPointPlan** (Architect — before Builder on `full`, including after a `parallel_discover` phase):
 
 ```markdown
 ## TouchPointPlan
@@ -335,19 +340,13 @@ PipelinePlan → Orient? (.cursor/memory/) → Scout (if context partial/missing
   → SessionHandoff → write handoffs/latest.md → offer /dream
 ```
 
-**`dream`:** PipelinePlan (brief) → `memory-dream` → DreamReport → stop
-
-**`coordinator`:** See [coordinator-preset.md](coordinator-preset.md) — Orient → parallel_discover or Scout → TouchPointPlan → delegate Builders → gate → Handoff → offer /dream. Main agent does **not** write feature code.
+**`coordinator`:** See [coordinator-preset.md](coordinator-preset.md) — Orient → parallel_discover (phase, not a named preset) or Scout → TouchPointPlan → delegate Builders → gate → Handoff → offer /dream. Main agent does **not** write feature code.
 
 **`fix`:** PipelinePlan (brief) → Builder → Verifier? → Critic if sensitive → SessionHandoff (short)
 
 **`discover`:** PipelinePlan → Scout → ContextMap → stop (or ask user to continue with `full`)
 
 **`gate`:** Verifier → Critic → Security? → DB-review if SQL changed → SessionHandoff
-
-**`parallel_discover`:** invoke `subagent-orchestrator` → parallel Scouts (disjoint scopes) → merge into one ContextMap → TouchPointPlan → continue `full` or stop for user OK
-
-**`ideate`:** `project-idea-generator` → user picks → new `full` pipeline
 
 **`improve`:** See [improve-preset.md](improve-preset.md)
 
@@ -357,6 +356,14 @@ PipelinePlan → Orient → Scout → ContextMap (+ Health signals)
   → SessionHandoff (short) → handoffs/latest.md → offer /dream
   → user picks item → new `full` pipeline (use Draft TouchPointPlan if present)
 ```
+
+### Related skill / phase graphs (not named presets)
+
+**`/dream`:** PipelinePlan (brief) → `memory-dream` → DreamReport → stop
+
+**`parallel_discover` (phase):** invoke `subagent-orchestrator` → parallel Scouts (disjoint scopes) → merge into one ContextMap → TouchPointPlan → continue `full` or stop for user OK
+
+**`/ideas`:** `project-idea-generator` → user picks → new `full` pipeline
 
 ### Critic loop
 
@@ -516,7 +523,7 @@ See [improve-preset.md](improve-preset.md). Do **not** run Builder on `improve` 
 
 ```
 - [ ] Intent, complexity, context, risk classified
-- [ ] Pipeline preset chosen (full/fix/discover/improve/gate/…)
+- [ ] Pipeline preset chosen (full/fix/discover/improve/gate/coordinator)
 - [ ] PipelinePlan stated (if non-trivial)
 - [ ] Scout → ContextMap before Architect (if preset full + context missing)
 - [ ] TouchPointPlan before Builder (if preset full)

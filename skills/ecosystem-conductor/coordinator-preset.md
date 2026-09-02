@@ -35,6 +35,8 @@ PipelinePlan
   → SessionHandoff + handoffs/latest.md → offer /dream
 ```
 
+`parallel_discover` is a Scout/orchestrate **phase** (via `/orchestrate`), not a named pipeline preset.
+
 ## Delegation rules
 
 1. **Coordinator never implements feature code** — only ecosystem/meta files if the task is ecosystem work.

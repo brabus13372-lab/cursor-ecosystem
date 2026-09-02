@@ -77,17 +77,15 @@ Requires Cursor with Skills + Hooks, Node.js 18+. Restart Cursor after install.
 | Preset | Use when |
 |--------|----------|
 | `full` | Large feature — Orient → pipeline → handoff → `/dream`? |
-| `coordinator` | Multi-domain — **main routes only**, subagents build |
 | `fix` | Known bug |
 | `discover` | Research only — no recommendations |
-| `gate` | Pre-merge verification |
-| `parallel_discover` | Parallel scouts |
-| `ideate` | `/ideas` → pick → continue (**greenfield** project ideas) |
 | `improve` | `/improve` — Scout → **ImprovementPlan** → pick → `full` (**this repo**) |
-| `ctf` | CTF web pipeline |
-| `dream` | Memory consolidation |
+| `gate` | Pre-merge verification |
+| `coordinator` | Multi-domain — **main routes only**, subagents build |
 
-**Aliases:** `Scout` → `discover` (role, not a preset). Typos `Impove` / `improv` → `improve`.
+**Not named presets** (still available): `/dream` (`memory-dream`; conductor still routes from Signals — memory stale / weekly upkeep); `/ideas` (`project-idea-generator`, then user may continue with `full`); `/ctf-audit` (domain routing like `/bot`/`/db`); `parallel_discover` (Scout/orchestrate **phase** inside `coordinator`, or optional parallel scouts — `/orchestrate` → merge ContextMap → `full` or stop).
+
+**Aliases:** `Scout` → `discover` (role, not a named preset). Typos `Impove` / `improv` / `imporve` → `improve`.
 
 ### Preset `coordinator`
 
@@ -102,7 +100,7 @@ Orient → Scout (ContextMap + Health signals) → Advisor → ImprovementPlan �
 - **Advisor (main):** evidence-based recommendations — no code changes
 - **Scout:** `/research`, `/explore`, `/fsd-map`, or parallel via `/orchestrate`
 - Slash: `/improve` or `Preset: improve`
-- Not the same as `ideate` (new projects) or `discover` (locate only)
+- Not the same as `/ideas` (new projects) or `discover` (locate only)
 - Doc: `skills/ecosystem-conductor/improve-preset.md`
 
 ---

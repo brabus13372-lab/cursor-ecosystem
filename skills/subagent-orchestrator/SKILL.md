@@ -65,7 +65,7 @@ Every subagent invocation must include:
 
 1. **Objective** — one sentence: what decision or artifact you need.
 2. **Scope** — directories, file patterns, or systems to touch (and what to avoid).
-3. **Deliverable** — expected output format. When **ecosystem-conductor** invoked this phase (`parallel_discover` preset), scouts must return **ContextMap** artifact (see `ecosystem-conductor/SKILL.md` → Multi-agent pipeline → Artifact templates). Otherwise: summary, file list, findings table, or test plan.
+3. **Deliverable** — expected output format. When **ecosystem-conductor** invoked this phase (`parallel_discover` — a Scout/orchestrate phase, not a named preset), scouts must return **ContextMap** artifact (see `ecosystem-conductor/SKILL.md` → Multi-agent pipeline → Artifact templates). Otherwise: summary, file list, findings table, or test plan.
 4. **Constraints** — read-only vs write, time/depth limit, do-not-modify areas.
 5. **Return criteria** — what to include in the final message back (findings + recommended next step, not raw dumps).
 
