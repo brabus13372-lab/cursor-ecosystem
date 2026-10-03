@@ -1,407 +1,151 @@
-# Cursor Ecosystem
+# Eco — плагин для Claude Code
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![Skills](https://img.shields.io/badge/skills-9-green)
-![Commands](https://img.shields.io/badge/commands-23-blue)
-![Agents](https://img.shields.io/badge/agents-8-purple)
+![Skills](https://img.shields.io/badge/skills-7-green)
+![Agents](https://img.shields.io/badge/agents-7-purple)
 
-Персональная экосистема Cursor: **skills**, **slash-команды**, **sub-agents**, **hooks** и **память между сессиями**. Центральный роутер — `ecosystem-conductor` (`/conductor`).
+Персональная экосистема разработки в виде **плагина Claude Code**: доменные
+скиллы, субагенты для ревью и реализации и облегчённый pipeline `/conductor`.
 
-Часть идей перенесена из архитектуры Claude Code (autoDream, coordinator mode, skill chains) — адаптировано под Cursor skills + hooks, без копирования проприетарного runtime.
+Эта ветка (`claude-code`) — порт Cursor-экосистемы из `master`. Доменные
+знания сохранены, а всё, что Claude Code умеет сам (выбор скиллов, обёртки
+slash-команд, встроенные агенты исследования, память между сессиями), убрано.
 
 **English:** [README.md](README.md)
 
 ---
 
-## Что внутри
-
-| Слой | Назначение | Папка в репо | Установка |
-|------|------------|--------------|-----------|
-| **Skills** | Workflow по доменам + conductor | `skills/` | `~/.cursor/skills/` |
-| **Commands** | Slash-точки входа (`/conductor`, `/dream`…) | `commands/` | `~/.cursor/commands/` |
-| **Agents** | Промпты sub-agents для Task tool | `agents/` | `~/.cursor/agents/` |
-| **Hooks** | Авто-память на старт сессии, hint на stop | `hooks/`, `hooks.json` | `~/.cursor/` |
-| **Memory** | Глобальный шаблон экосистемы | `memory/` | `~/.cursor/memory/` |
-
-**Проектная память** (отдельно от репо): в каждом репозитории `.cursor/memory/` — создаётся conductor или `/dream`.
-
----
-
-## Архитектура
-
-```mermaid
-flowchart TD
-    User["Пользователь"]
-    Hook["hooks: sessionStart\nMEMORY inject"]
-    Conductor["/conductor"]
-    Dream["/dream\nmemory-dream"]
-    Skills["Domain skills"]
-    Agents["Sub-agents"]
-    Mem[".cursor/memory/\nhandoffs + topics"]
-
-    User --> Hook
-    Hook --> Conductor
-    User --> Conductor
-    User --> Dream
-    Conductor --> Skills
-    Conductor --> Agents
-    Conductor --> Mem
-    Dream --> Mem
-```
-
-**Правило:** единственный auto-router — `ecosystem-conductor`. Остальные skills — только по slash или делегированию conductor.
-
----
-
-## Структура репозитория
-
-```
-cursor-ecosystem/
-├── README.md / README.ru.md
-├── package.json                   # npm test (hook smokes)
-├── install.ps1 / install.sh       # -DryRun / -Backup
-├── hooks.json
-├── hooks/
-│   ├── session-start-memory.mjs   # inject MEMORY + handoff
-│   ├── stop-handoff-hint.mjs      # напоминание про handoff (1×/сессию)
-│   └── __tests__/                 # node:test smoke (stdin → JSON)
-├── memory/                        # глобальный шаблон (~/.cursor/memory/)
-├── skills/                          # 9 skills
-│   ├── ecosystem-conductor/       # роутер + coordinator/improve presets, skill-chains…
-│   ├── memory-dream/              # консолидация памяти (autoDream-like)
-│   └── …
-├── commands/                        # 23 slash-команды
-└── agents/                        # 8 agents + AGENTS.md hub
-```
-
----
-
 ## Установка
 
-### Требования
+В Claude Code:
 
-- Cursor IDE с Agent Skills и Hooks
-- Node.js 18+ (для hook-скриптов)
-
-### Быстрый старт
-
-**Windows (PowerShell):**
-
-```powershell
-git clone https://github.com/brabus13372-lab/cursor-ecosystem.git
-cd cursor-ecosystem
-.\install.ps1 -DryRun          # план без записи
-.\install.ps1 -Backup          # бэкап ~/.cursor-* затем install
-.\install.ps1                  # обычная установка (overwrite)
+```
+/plugin marketplace add brabus13372-lab/cursor-ecosystem@claude-code
+/plugin install eco@brabus-lab
 ```
 
-**macOS / Linux:**
+После установки перезапусти сессию Claude Code. Чтобы
+попробовать без установки, склонируй ветку и запусти
+`claude --plugin-dir ./cursor-ecosystem`.
 
-```bash
-git clone https://github.com/brabus13372-lab/cursor-ecosystem.git
-cd cursor-ecosystem
-chmod +x install.sh
-./install.sh --dry-run         # план без записи
-./install.sh --backup          # бэкап ~/.cursor-backup-* затем install
-./install.sh                   # обычная установка (overwrite)
-```
-
-Скрипт показывает сводку repo vs `~/.cursor` (число файлов / hash `hooks.json`) и **WARNING**, если destination отличается. `-Backup` / `--backup` копирует существующие `skills|commands|agents|hooks|memory|hooks.json` в `~/.cursor-backup-YYYYMMDD-HHmmss` перед overwrite.
-
-Перезапусти Cursor или открой новый Agent chat. Проверь вкладку **Hooks** в настройках.
-
-### Ручная установка
-
-```powershell
-$dst = "$env:USERPROFILE\.cursor"
-Copy-Item -Recurse -Force .\skills\*   "$dst\skills\"
-Copy-Item -Recurse -Force .\commands\* "$dst\commands\"
-Copy-Item -Recurse -Force .\agents\*   "$dst\agents\"
-Copy-Item -Recurse -Force .\hooks\*    "$dst\hooks\"
-Copy-Item -Force .\hooks.json          "$dst\hooks.json"
-Copy-Item -Recurse -Force .\memory\*   "$dst\memory\"
-```
-
-### Синхронизация обратно в репо
-
-После правок в `~/.cursor/`:
-
-```powershell
-$src = "$env:USERPROFILE\.cursor"
-$dst = "<path-to-this-repo>"
-Copy-Item -Recurse -Force "$src\skills\*"   "$dst\skills\"
-Copy-Item -Recurse -Force "$src\commands\*" "$dst\commands\"
-Copy-Item -Recurse -Force "$src\agents\*"   "$dst\agents\"
-Copy-Item -Recurse -Force "$src\hooks\*"    "$dst\hooks\"
-Copy-Item -Force "$src\hooks.json"          "$dst\hooks.json"
-Copy-Item -Recurse -Force "$src\memory\*"   "$dst\memory\"
-```
+По желанию скопируй [`examples/CLAUDE.md`](examples/CLAUDE.md) в
+`~/.claude/CLAUDE.md` — общие правила работы (сначала план, минимальные диффы,
+самопроверка, соглашения по README). Плагин сам подключать CLAUDE.md не может.
 
 ---
 
-## Pipeline presets (`/conductor`)
+## Скиллы
 
-| Preset | Когда | Суть |
-|--------|-------|------|
-| **`full`** | Большая фича, незнакомая область | Orient → Scout → Architect → Builder → Verifier → Critic → Handoff → `/dream`? |
-| **`fix`** | Известный баг | Builder → Verifier? → Critic? |
-| **`discover`** | Только исследование | Scout → ContextMap |
-| **`improve`** | Улучшения **этого** репо | Orient → Scout → ImprovementPlan → выбор → `full` |
-| **`gate`** | Перед merge | Tests + review + security |
-| **`coordinator`** | Multi-domain, много файлов | Main **не пишет** feature code — только роутит subagents |
+Все компоненты плагина в пространстве имён `eco`: скиллы вызываются как
+`/eco:<имя>`, агенты называются `eco:<имя>`.
 
-**Не peer-строки Preset-таблицы** (доступны как skill/command/фаза): `/dream` (`memory-dream`; conductor роутит из Signals — stale memory / weekly upkeep); `/ideas` (`project-idea-generator`, потом можно продолжить `full`); `/ctf-audit` (domain routing как `/bot`/`/db`); `parallel_discover` (фаза Scout/orchestrate внутри `coordinator` — `/orchestrate` → merge ContextMap → `full` или stop).
+| Скилл | Вызов | Назначение |
+|-------|-------|------------|
+| `bot` | авто + `/eco:bot` | Telegram-боты на aiogram 3: роутеры, DI, фильтры, FSM, типизированные callback, вебхуки, рассылки |
+| `db` | авто + `/eco:db` | PostgreSQL из Python: транзакции, блокировки, гонки, идемпотентность, безопасные миграции |
+| `tests` | авто + `/eco:tests` | Тесты на существующем стеке проекта (pytest, FastAPI, Vitest/Jest, RTL) |
+| `motion` | авто + `/eco:motion` | Централизованная система анимаций на Motion / Framer Motion для React |
+| `fsd-map` | авто + `/eco:fsd-map` | Read-only карта слоёв FSD; выполняется в отдельном контексте Explore |
+| `ideas` | только `/eco:ideas` | Идеи проектов с оценкой, включая юридическую и платёжную реализуемость |
+| `conductor` | только `/eco:conductor` | Фазовый pipeline с пресетами `full`, `fix`, `discover`, `improve`, `gate` |
 
-**Aliases:** `Scout` → `discover` (роль, не preset). Опечатки `Impove` / `improv` / `imporve` → `improve`.
+«Авто» значит, что Claude сам подгружает скилл, когда задача совпадает с его
+описанием, — отдельный роутер не нужен.
 
-### Preset `coordinator`
+## Агенты
 
-Вдохновлён Claude Code `COORDINATOR_MODE`:
+| Агент | Пишет код | Назначение |
+|-------|-----------|------------|
+| `code-reviewer` | нет | Ревью локального диффа: корректность, архитектура, дублирование, тесты |
+| `security-reviewer` | нет | Секреты, авторизация, инъекции, валидация, логирование |
+| `database-reviewer` | нет | Атомарность, гонки, блокировки, безопасность SQL, миграции |
+| `ctf-auditor` | нет | CTF web: диагностика цепочки remote chall + admin bot + OOB |
+| `refactoring` | да | Рефакторинг без изменения поведения в заданных файлах |
+| `bot-designer` | да | Крупная работа с aiogram (3+ файлов, FSM, планировщик, рассылки) |
+| `motion-designer` | да | Крупная работа с анимациями (3+ файлов, модуль motion, аудит) |
 
-```
-Orient → parallel scouts → TouchPointPlan → delegate Builders → gate → Handoff
-```
+Read-only у агентов обеспечивается списком инструментов (нет `Write`/`Edit`),
+а не формулировкой в промпте. Вызов явно — `@agent-eco:code-reviewer`, либо
+Claude делегирует сам по описанию.
 
-- **Coordinator (main):** briefs, synthesis, ecosystem-файлы — не feature code
-- **Builders:** `bot-designer`, `motion-designer`, `refactoring`, domain skills
-- Док: `skills/ecosystem-conductor/coordinator-preset.md`
-
-### Preset `improve`
-
-```
-Orient → Scout (ContextMap + Health signals) → Advisor → ImprovementPlan → stop
-```
-
-- **Advisor (main):** evidence-based рекомендации — без правок кода
-- **Scout:** `/research`, `/explore`, `/fsd-map` или parallel via `/orchestrate`
-- Slash: `/improve` или `Preset: improve`
-- Док: `skills/ecosystem-conductor/improve-preset.md`
-
-### Preset `full` (кратко)
+## Conductor
 
 ```
-PipelinePlan → Orient (.cursor/memory/) → Scout? → ContextMap
-  → TouchPointPlan → Builder → Verifier → Critic → Security?
-  → SessionHandoff → handoffs/latest.md → offer /dream
+/eco:conductor full добавить реферальную систему в бота
+/eco:conductor fix двойные платежи при повторе вебхука
+/eco:conductor discover как продлеваются подписки
+/eco:conductor improve backend и тесты
+/eco:conductor gate
 ```
+
+| Пресет | Фазы |
+|--------|------|
+| `full` | Scout → TouchPointPlan → Build → Verify → Review → Security? |
+| `fix` | Build → Verify → Review, если затронуто чувствительное |
+| `discover` | Scout → ContextMap → стоп |
+| `improve` | Scout → ImprovementPlan → стоп ([подробнее](skills/conductor/improve.md)) |
+| `gate` | Verify → Review → Security? → DB review, если менялся SQL |
+
+Цикл исправлений после ревью ограничен двумя раундами. Разведка идёт через
+встроенный агент `Explore`, ревью — через агентов `eco:*-reviewer`.
 
 ---
 
-## Память между сессиями (Memory layer)
+## Что изменилось относительно Cursor-версии (`master`)
 
-Идея из Claude Code **autoDream** → skill **`memory-dream`** (`/dream`).
+| Cursor | Claude Code | Почему |
+|--------|-------------|--------|
+| 23 slash-команды | удалены | Скиллы сами являются slash-командами |
+| `ecosystem-conductor` (26 КБ + 5 документов) как авто-роутер | `conductor` (~5 КБ), только явный вызов | Claude Code сам выбирает скиллы по описаниям |
+| `subagent-orchestrator` | влит в conductor (шаблон брифа) | Делегирование встроено |
+| `codebase-research`, `/explore`, `/research`, `/terminal` | удалены | Встроенные агенты `Explore` / `Plan` |
+| `memory-dream`, хуки, `.cursor/memory/` | удалены | Встроенная память |
+| цепочки `after:` | разделы «After this skill» | Такого поля в Claude Code нет |
+| `readonly: true` | `tools` / `disallowedTools` | Реально ограничивает агента |
+| `disable-model-invocation` у всех скиллов | только у `conductor` и `ideas` | Доменные скиллы должны подгружаться сами |
+| `install.ps1` / `install.sh` | маркетплейс плагинов | `/plugin install`, обновления из коробки |
+| `/ci` → несуществующий агент `ci-investigator` | удалён | Битая ссылка |
 
-### Глобально (`~/.cursor/memory/`)
+Что улучшено в содержимом скиллов:
 
-Инвентарь экосистемы, presets, hooks — ставится из репо.
+- **bot** — DI через workflow data, авторизация фильтрами на уровне роутера,
+  типизированный `CallbackData`, HTML с экранированием вместо устаревшего
+  Markdown, вебхук на FastAPI с проверкой секрета, повторная доставка апдейтов
+  и идемпотентность, лимиты рассылок (`TelegramRetryAfter`,
+  `TelegramForbiddenError`), выбор хранилища FSM.
+- **db** — исправлен пример upsert (`postgresql.insert` + `stmt.excluded`),
+  повтор всей транзакции по SQLSTATE (`40001`, `40P01`),
+  `expire_on_commit=False`, один владелец commit, `lock_timeout`,
+  `CONCURRENTLY` в Alembic через `autocommit_block`, ограничения `NOT VALID`,
+  PgBouncer и prepared statements у asyncpg.
+- **tests** — регрессионный тест обязан падать без фикса, pytest-asyncio,
+  FastAPI через `ASGITransport`, dependency overrides, моки только на границах.
+- **motion** — определение пакета `motion` или `framer-motion`,
+  `MotionConfig reducedMotion="user"`, `LazyMotion`, ключи в `AnimatePresence`.
+- **fsd-map** — выполняется в отдельном контексте Explore; проверки public API и Steiger.
+- **ideas** — юрисдикция во входных данных и жёсткий фильтр по юридическим и платёжным рискам.
 
-### В проекте (`.cursor/memory/`)
-
-```
-.cursor/memory/
-├── MEMORY.md              # индекс (~25 строк)
-├── architecture.md        # topic files
-├── decisions.md
-├── handoffs/latest.md     # последний SessionHandoff
-└── .dream-state.json
-```
-
-### Hooks
-
-| Событие | Скрипт | Эффект |
-|---------|--------|--------|
-| `sessionStart` | `session-start-memory.mjs` | Подмешивает MEMORY + handoff в контекст |
-| `stop` (loop_limit: 1) | `stop-handoff-hint.mjs` | Напоминание записать handoff |
-
-Smoke tests (stdin JSON → stdout JSON): `npm test` или `node --test hooks/__tests__/*.test.mjs`.
-
-### `/dream`
-
-4 фазы: orient → gather signal → consolidate → prune index.  
-Gate: `node skills/memory-dream/scripts/dream-gate.mjs` (по умолчанию ≥24ч).
-
----
-
-## Skill chains (`after:`)
-
-В frontmatter skills — цепочки после успешного выполнения (когда conductor роутил):
-
-| Skill | `after:` |
-|-------|----------|
-| `database-engineer` | `test-writer` → `database-reviewer` |
-| `telegram-bot-builder` | `test-writer` |
-| `motion-system-builder` | `test-writer` |
-| остальные | `[]` — next step у conductor |
-
-Полная таблица: `skills/ecosystem-conductor/skill-chains.md`
-
----
-
-## Agent roles
-
-| Роль | Кто | Пишет код? |
-|------|-----|------------|
-| Scout | `codebase-research`, `explore` | Нет (`readonly`) |
-| Advisor | main (`improve` preset) | Нет — `ImprovementPlan` |
-| Critic | `code-reviewer`, `security-reviewer`, `database-reviewer` | Нет |
-| Builder | `bot-designer`, `motion-designer`, `refactoring` | Да, в `scope` |
-| Coordinator | main (`coordinator` preset) | Нет (feature code) |
-
-Hub: `agents/AGENTS.md` · Матрица: `skills/ecosystem-conductor/agent-roles.md`
-
----
-
-## Skills (9)
-
-| Skill | Command | Описание |
-|-------|---------|----------|
-| `ecosystem-conductor` | `/conductor` | Auto-router, presets, артефакты |
-| `memory-dream` | `/dream` | Консолидация памяти |
-| `subagent-orchestrator` | `/orchestrate` | Parallel delegation (фаза) |
-| `fsd-project-explorer` | `/fsd-map` | FSD map (read-only) |
-| `motion-system-builder` | `/motion` | Framer Motion, лёгкий случай |
-| `test-writer` | `/tests` | Тесты под стек проекта |
-| `database-engineer` | `/db` | Postgres + Python implement |
-| `telegram-bot-builder` | `/bot` | aiogram 3, лёгкий случай |
-| `project-idea-generator` | `/ideas` | Идеи проектов |
-
-## Commands (23)
-
-Справочник: `commands/skills.md` · Sub-agents: `commands/agents.md`
-
-Ключевые: `/conductor`, `/improve`, `/dream`, `/orchestrate`, `/research`, `/review`, `/security`, `/db`, `/bot`, `/motion`, `/tests`, `/ideas`, `/ctf-audit`
-
-## Agents (8 + hub)
-
-| Agent | Command | readonly |
-|-------|---------|----------|
-| `codebase-research` | `/research` | yes |
-| `code-reviewer` | `/review` | yes |
-| `security-reviewer` | `/security` | yes |
-| `database-reviewer` | `/db-review` | yes |
-| `ctf-web-infra-auditor` | `/ctf-audit` | yes |
-| `refactoring` | `/refactor` | bounded write |
-| `bot-designer` | `/bot-agent` | bot scope |
-| `motion-designer` | `/motion-agent` | motion scope |
-
----
-
-## Примеры
-
-### Полный pipeline
+## Структура
 
 ```
-/conductor Preset: full
-Цель: добавить auth middleware
-Ограничения: не трогать legacy API
-Готово когда: тесты зелёные, review ok
+.claude-plugin/
+  plugin.json         # манифест плагина (name: eco)
+  marketplace.json    # маркетплейс из одного плагина (name: brabus-lab)
+skills/
+  bot/ db/ tests/ motion/ fsd-map/ ideas/ conductor/
+agents/
+  code-reviewer.md security-reviewer.md database-reviewer.md
+  refactoring.md bot-designer.md motion-designer.md ctf-auditor.md
+examples/
+  CLAUDE.md           # шаблон для ~/.claude/CLAUDE.md
 ```
 
-### Coordinator (multi-domain)
+## Проверка
 
 ```
-/conductor Preset: coordinator
-Цель: bot handler + DB migration + motion onboarding
-Ограничения: main не пишет feature code
+claude plugin validate .
 ```
 
-### Улучшения текущего репо
+## Лицензия
 
-```
-/improve
-Scope: backend + tests
-```
-
-```
-/conductor Preset: improve
-что улучшить в архитектуре и CI
-```
-
-После **ImprovementPlan** — выбери пункт → `/conductor Preset: full`.
-
-### Память
-
-```
-/dream
-Фокус: architecture + decisions из последнего handoff
-```
-
-### Продолжить в новом чате
-
-```
-/conductor продолжи: [задача]
-Context: см. .cursor/memory/handoffs/latest.md
-```
-
----
-
-## Phase artifacts
-
-| Artifact | Кто | Назначение |
-|----------|-----|------------|
-| `PipelinePlan` | Conductor | Цель, constraints, фазы |
-| `ContextMap` | Scout | Файлы, паттерны, Health signals (`improve`) |
-| `ImprovementPlan` | Advisor | Quick wins / strategic / do-not-touch (`improve`) |
-| `TouchPointPlan` | Architect | Что создать/изменить |
-| `TestReport` | Verifier | pass/fail |
-| `ReviewFindings` | Critic | ship ready? |
-| `SessionHandoff` | Closer | → `handoffs/latest.md` |
-| `DreamReport` | memory-dream | Что consolidated |
-
----
-
-## FAQ
-
-**Cursor не видит команды?**  
-Файлы в `~/.cursor/`, не только в клоне. Перезапуск Cursor.
-
-**Hooks не работают?**  
-Нужен Node в PATH. Проверь Settings → Hooks. Пути в `hooks.json` относительно `~/.cursor/`.
-
-**Чем skill от command?**  
-Skill = полный workflow. Command = «прочитай skill X и выполни».
-
-**Зачем `coordinator`?**  
-Когда задача на несколько доменов — main оркестрирует, builders пишут в своих scope.
-
-**Чем `improve` от `/ideas`?**  
-`improve` — что улучшить **в текущем репо** (Scout + evidence). `/ideas` (`project-idea-generator`) — идеи **нового** проекта с нуля. `ideate` — не named preset.
-
-**`Preset: Scout`?**  
-Это роль, не preset → conductor мапит на `discover`. Опечатки вроде `Impove` → `improve`.
-
-**Как не затереть локальные правки в `~/.cursor`?**  
-`.\install.ps1 -DryRun` / `./install.sh --dry-run`, потом `-Backup` / `--backup`.
-
-**Откуда идеи?**  
-Память/dream/coordinator — из изучения leaked Claude Code CLI (архив, не runtime). Bash permissions и BUDDY **не** переносились.
-
-**Сколько fix-раундов после review?**  
-Максимум **2**, потом эскалация пользователю.
-
----
-
-## Statistics
-
-| Category | Count |
-|----------|-------|
-| Skills | 9 |
-| Commands | 23 |
-| Agents | 8 (+ AGENTS.md) |
-| Hooks | 2 (+ smoke tests) |
-| Conductor supplement docs | 5 |
-
----
-
-## Verify
-
-```powershell
-npm test
-# or: node --test hooks/__tests__/*.test.mjs
-```
-
----
-
-## License
-
-MIT — см. использование на свой страх и риск; не аффилировано с Anthropic или Cursor.
+MIT

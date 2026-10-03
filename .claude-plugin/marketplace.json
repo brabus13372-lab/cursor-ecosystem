@@ -1,0 +1,15 @@
+{
+  "name": "brabus-lab",
+  "description": "Personal Claude Code plugins by brabus13372-lab.",
+  "owner": {
+    "name": "brabus13372-lab",
+    "url": "https://github.com/brabus13372-lab"
+  },
+  "plugins": [
+    {
+      "name": "eco",
+      "source": "./",
+      "description": "Domain skills, review/builder subagents and the /conductor pipeline."
+    }
+  ]
+}

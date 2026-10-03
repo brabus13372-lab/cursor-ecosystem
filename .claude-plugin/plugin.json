@@ -1,0 +1,13 @@
+{
+  "name": "eco",
+  "displayName": "Eco — personal dev ecosystem",
+  "version": "1.0.0",
+  "description": "Domain skills (aiogram bots, Postgres, tests, motion, FSD, ideas), review/builder subagents and a lightweight /conductor pipeline.",
+  "author": {
+    "name": "brabus13372-lab",
+    "url": "https://github.com/brabus13372-lab"
+  },
+  "repository": "https://github.com/brabus13372-lab/cursor-ecosystem",
+  "license": "MIT",
+  "keywords": ["aiogram", "postgres", "testing", "framer-motion", "fsd", "code-review", "pipeline"]
+}

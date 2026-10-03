@@ -1,198 +1,148 @@
-# Cursor Ecosystem
+# Eco — Claude Code plugin
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![Skills](https://img.shields.io/badge/skills-9-green)
-![Commands](https://img.shields.io/badge/commands-23-blue)
-![Agents](https://img.shields.io/badge/agents-8-purple)
+![Skills](https://img.shields.io/badge/skills-7-green)
+![Agents](https://img.shields.io/badge/agents-7-purple)
 
-Personal Cursor ecosystem: **skills**, **slash commands**, **sub-agents**, **hooks**, and **cross-session memory**. Central router: `ecosystem-conductor` (`/conductor`).
+Personal development ecosystem packaged as a **Claude Code plugin**: domain
+skills, review and builder subagents, and a lightweight `/conductor` pipeline.
 
-Ideas adapted from Claude Code architecture (autoDream, coordinator mode, skill chains) — for Cursor skills + hooks, not a copy of proprietary runtime.
+This branch (`claude-code`) is the Claude Code port of the Cursor ecosystem on
+`master`. It keeps the domain knowledge and drops everything Claude Code
+already does natively (skill routing, slash-command wrappers, built-in
+exploration agents, cross-session memory).
 
 **Русский:** [README.ru.md](README.ru.md)
 
 ---
 
-## Layers
-
-| Layer | Purpose | Repo | Install to |
-|-------|---------|------|------------|
-| Skills | Domain workflows + conductor | `skills/` | `~/.cursor/skills/` |
-| Commands | Slash entry points | `commands/` | `~/.cursor/commands/` |
-| Agents | Sub-agent prompts | `agents/` | `~/.cursor/agents/` |
-| Hooks | Memory inject, handoff hint | `hooks/`, `hooks.json` | `~/.cursor/` |
-| Memory | Global ecosystem index | `memory/` | `~/.cursor/memory/` |
-
-Per-project memory: `.cursor/memory/` in each repo (bootstrap via conductor or `/dream`). Optional local backlog: `.cursor/conductor-prompts.md` (often gitignored with `.cursor/`).
-
----
-
-## Repo layout
-
-```
-cursor-ecosystem/
-├── package.json                 # npm test
-├── install.ps1 / install.sh     # -DryRun / -Backup
-├── hooks/
-│   ├── session-start-memory.mjs
-│   ├── stop-handoff-hint.mjs
-│   └── __tests__/               # node:test smokes
-├── memory/                      # global template → ~/.cursor/memory/
-├── skills/                      # 9 skills
-├── commands/                    # 23 commands
-└── agents/                      # 8 agents + AGENTS.md
-```
-
----
-
 ## Install
 
-**Windows:**
+Inside Claude Code:
 
-```powershell
-git clone https://github.com/brabus13372-lab/cursor-ecosystem.git
-cd cursor-ecosystem
-.\install.ps1 -DryRun     # plan only
-.\install.ps1 -Backup     # backup then install
-.\install.ps1             # overwrite install
+```
+/plugin marketplace add brabus13372-lab/cursor-ecosystem@claude-code
+/plugin install eco@brabus-lab
 ```
 
-**macOS/Linux:**
+Restart the Claude Code session after installing. To try it
+without installing, clone the branch and run `claude --plugin-dir ./cursor-ecosystem`.
 
-```bash
-chmod +x install.sh
-./install.sh --dry-run
-./install.sh --backup
-./install.sh
-```
-
-Scripts print a repo vs `~/.cursor` summary and warn on drift. `--backup` / `-Backup` snapshots to `~/.cursor-backup-YYYYMMDD-HHmmss` before overwrite.
-
-Requires Cursor with Skills + Hooks, Node.js 18+. Restart Cursor after install.
+Optionally copy [`examples/CLAUDE.md`](examples/CLAUDE.md) into
+`~/.claude/CLAUDE.md` — general working rules (plan first, minimal diffs,
+self-check, README conventions). Plugins cannot ship CLAUDE.md themselves.
 
 ---
 
-## Pipeline presets
+## Skills
 
-| Preset | Use when |
-|--------|----------|
-| `full` | Large feature — Orient → pipeline → handoff → `/dream`? |
-| `fix` | Known bug |
-| `discover` | Research only — no recommendations |
-| `improve` | `/improve` — Scout → **ImprovementPlan** → pick → `full` (**this repo**) |
-| `gate` | Pre-merge verification |
-| `coordinator` | Multi-domain — **main routes only**, subagents build |
+All plugin components are namespaced: skills run as `/eco:<name>`, agents are
+`eco:<name>`.
 
-**Not named presets** (still available): `/dream` (`memory-dream`; conductor still routes from Signals — memory stale / weekly upkeep); `/ideas` (`project-idea-generator`, then user may continue with `full`); `/ctf-audit` (domain routing like `/bot`/`/db`); `parallel_discover` (Scout/orchestrate **phase** inside `coordinator`, or optional parallel scouts — `/orchestrate` → merge ContextMap → `full` or stop).
+| Skill | Invocation | Purpose |
+|-------|------------|---------|
+| `bot` | auto + `/eco:bot` | Telegram bots on aiogram 3: routers, DI, filters, FSM, typed callbacks, webhooks, broadcasts |
+| `db` | auto + `/eco:db` | PostgreSQL from Python: transactions, locks, races, idempotency, safe migrations |
+| `tests` | auto + `/eco:tests` | Tests in the project's existing stack (pytest, FastAPI, Vitest/Jest, RTL) |
+| `motion` | auto + `/eco:motion` | Centralized Motion / Framer Motion system for React |
+| `fsd-map` | auto + `/eco:fsd-map` | Read-only FSD layer map; runs in a forked Explore context |
+| `ideas` | `/eco:ideas` only | Scored project ideas from constraints, incl. legal/payment feasibility |
+| `conductor` | `/eco:conductor` only | Phase pipeline with presets `full`, `fix`, `discover`, `improve`, `gate` |
 
-**Aliases:** `Scout` → `discover` (role, not a named preset). Typos `Impove` / `improv` / `imporve` → `improve`.
+"auto" means Claude loads the skill on its own when the task matches its
+description — no router needed.
 
-### Preset `coordinator`
+## Agents
 
-Main agent does not write feature code — delegates to scoped builders. See `skills/ecosystem-conductor/coordinator-preset.md`.
+| Agent | Writes code | Purpose |
+|-------|-------------|---------|
+| `code-reviewer` | no | Review of local diff: correctness, architecture, duplication, tests |
+| `security-reviewer` | no | Secrets, auth, injection, validation, logging |
+| `database-reviewer` | no | Atomicity, races, locking, SQL safety, migrations |
+| `ctf-auditor` | no | CTF web: remote chall + admin bot + OOB chain diagnosis |
+| `refactoring` | yes | Behavior-preserving refactor of a named scope |
+| `bot-designer` | yes | Heavy aiogram work (3+ files, FSM, scheduler, broadcasts) |
+| `motion-designer` | yes | Heavy animation work (3+ files, motion module, audit) |
 
-### Preset `improve`
+Read-only agents are enforced by their tool list (no `Write`/`Edit`), not by
+prompt wording. Invoke explicitly with `@agent-eco:code-reviewer`, or let
+Claude delegate by description.
+
+## Conductor
 
 ```
-Orient → Scout (ContextMap + Health signals) → Advisor → ImprovementPlan → stop
+/eco:conductor full add referral system to the bot
+/eco:conductor fix duplicate payments on webhook retry
+/eco:conductor discover how subscriptions are renewed
+/eco:conductor improve backend and tests
+/eco:conductor gate
 ```
 
-- **Advisor (main):** evidence-based recommendations — no code changes
-- **Scout:** `/research`, `/explore`, `/fsd-map`, or parallel via `/orchestrate`
-- Slash: `/improve` or `Preset: improve`
-- Not the same as `/ideas` (new projects) or `discover` (locate only)
-- Doc: `skills/ecosystem-conductor/improve-preset.md`
+| Preset | Phases |
+|--------|--------|
+| `full` | Scout → TouchPointPlan → Build → Verify → Review → Security? |
+| `fix` | Build → Verify → Review if sensitive |
+| `discover` | Scout → ContextMap → stop |
+| `improve` | Scout → ImprovementPlan → stop ([details](skills/conductor/improve.md)) |
+| `gate` | Verify → Review → Security? → DB review if SQL changed |
+
+Review fix loop is capped at 2 rounds. Scouting uses the built-in `Explore`
+agent; reviews use the `eco:*-reviewer` agents.
 
 ---
 
-## Memory layer
+## What changed vs the Cursor version (`master`)
 
-- **`/dream`** (`memory-dream` skill) — consolidate durable facts into `.cursor/memory/`
-- **`sessionStart` hook** — injects MEMORY + latest handoff
-- **`stop` hook** — one-time handoff reminder per session
-- **SessionHandoff** — written to `.cursor/memory/handoffs/latest.md`
-- Hook smoke tests: `npm test`
+| Cursor | Claude Code | Why |
+|--------|-------------|-----|
+| 23 slash commands | removed | Skills are slash commands themselves |
+| `ecosystem-conductor` (26 KB + 5 docs) as auto-router | `conductor` (~5 KB), explicit only | Claude Code routes by skill descriptions natively |
+| `subagent-orchestrator` | folded into conductor (brief template) | Delegation is built in |
+| `codebase-research`, `/explore`, `/research`, `/terminal` | removed | Built-in `Explore` / `Plan` agents |
+| `memory-dream`, hooks, `.cursor/memory/` | removed | Built-in memory |
+| `after:` chains | "After this skill" sections | Not a Claude Code field |
+| `readonly: true` | `tools` / `disallowedTools` | Actually enforced |
+| `disable-model-invocation` on every skill | only on `conductor`, `ideas` | Domain skills should auto-load; agents need that to rely on them |
+| `install.ps1` / `install.sh` | plugin marketplace | `/plugin install`, updates included |
+| `/ci` → missing `ci-investigator` agent | removed | Broken reference |
 
----
+Skill content updates in this port:
 
-## Agent roles
+- **bot** — workflow-data DI, router-level auth filters, typed `CallbackData`,
+  HTML + escaping instead of legacy Markdown, FastAPI webhook with secret
+  check, update redelivery and idempotency, broadcast rate limits
+  (`TelegramRetryAfter`, `TelegramForbiddenError`), FSM storage choice.
+- **db** — fixed upsert example (`postgresql.insert` + `stmt.excluded`),
+  retries by SQLSTATE (`40001`, `40P01`) of the whole transaction,
+  `expire_on_commit=False`, single commit owner, `lock_timeout`,
+  `CONCURRENTLY` in Alembic `autocommit_block`, `NOT VALID` constraints,
+  PgBouncer + asyncpg prepared statements.
+- **tests** — "regression test must fail without the fix", pytest-asyncio,
+  FastAPI `ASGITransport`, dependency overrides, boundary mocking.
+- **motion** — `motion` vs `framer-motion` package detection,
+  `MotionConfig reducedMotion="user"`, `LazyMotion`, keyed `AnimatePresence`.
+- **fsd-map** — runs forked in the Explore agent; public-API and Steiger checks.
+- **ideas** — jurisdiction input and a legal/payments hard filter.
 
-| Role | Who | Writes code? |
-|------|-----|--------------|
-| Scout | `codebase-research`, `explore` | No |
-| Advisor | main (`improve` preset) | No — `ImprovementPlan` |
-| Critic | reviewers | No |
-| Builder | domain agents | Yes, bounded scope |
-| Coordinator | main (`coordinator` preset) | No feature code |
-
-Hub: `agents/AGENTS.md`
-
----
-
-## Skill chains (`after:`)
-
-| Skill | Then |
-|-------|------|
-| `/db` | `/tests` → `/db-review` |
-| `/bot`, `/motion` | `/tests` |
-
-See `skills/ecosystem-conductor/skill-chains.md`.
-
----
-
-## Phase artifacts
-
-| Artifact | Who | Purpose |
-|----------|-----|---------|
-| `PipelinePlan` | Conductor | Goal, phases, constraints |
-| `ContextMap` | Scout | Files, patterns, Health signals (`improve`) |
-| `ImprovementPlan` | Advisor | Prioritized repo improvements (`improve`) |
-| `TouchPointPlan` | Architect | Create / modify scope |
-| `SessionHandoff` | Closer | → `handoffs/latest.md` |
-| `DreamReport` | memory-dream | Memory consolidation |
-
----
-
-## Quick examples
+## Layout
 
 ```
-/conductor Preset: full
-Goal: add auth middleware
-Constraints: do not touch legacy API
-Done when: tests green, review ok
+.claude-plugin/
+  plugin.json         # plugin manifest (name: eco)
+  marketplace.json    # single-plugin marketplace (name: brabus-lab)
+skills/
+  bot/ db/ tests/ motion/ fsd-map/ ideas/ conductor/
+agents/
+  code-reviewer.md security-reviewer.md database-reviewer.md
+  refactoring.md bot-designer.md motion-designer.md ctf-auditor.md
+examples/
+  CLAUDE.md           # template for ~/.claude/CLAUDE.md
 ```
-
-```
-/conductor Preset: coordinator
-Goal: bot + DB + motion
-Constraints: main does not write feature code
-```
-
-```
-/improve
-Scope: backend + tests
-```
-
-```
-/conductor Preset: improve
-what to improve in architecture and CI
-```
-
-```
-/dream
-```
-
----
-
-## Stats
-
-9 skills · 23 commands · 8 agents · 2 hooks (+ smokes) · 5 conductor supplement docs
 
 ## Verify
 
-```bash
-npm test
-# or: node --test hooks/__tests__/*.test.mjs
+```
+claude plugin validate .
 ```
 
 ## License
